@@ -205,7 +205,7 @@ alias em="emacsclient -nw -a ''"
 alias gemacs="emacsclient -c -a '' &"
 
 # Restart the Emacs daemon
-alias rem="killall emacs || echo 'Emacs server not running'; /usr/bin/emacs --daemon"
+alias rem="killall emacs; command emacs --daemon"
 
 # Neovim Profiles
 alias nlazy='NVIM_APPNAME=lazyvim nvim'
