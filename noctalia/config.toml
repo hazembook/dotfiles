@@ -43,3 +43,16 @@ end = [
     "session"
 ]
 start = ["control-center", "screenshot", "noctalia/screen_recorder:recorder", "workspaces", "active_window"]
+
+[idle]
+pre_action_fade_seconds = 2.0
+
+[idle.behavior.lock]
+timeout = 300
+action = "lock"
+enabled = true
+
+[idle.behavior.screen-off]
+timeout = 330
+action = "screen_off"
+enabled = true
