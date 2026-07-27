@@ -1,0 +1,11 @@
+plugin_api = 3
+id = "hazembook/hijri-date"
+name = "Hijri Date"
+version = "1.0.0"
+min_noctalia = "5.0.0"
+author = "hazembook"
+description = "Bar widget: Gregorian date, clock, and Hijri date."
+
+[[widget]]
+id = "date-clock-hijri"
+entry = "hijri_date_widget.luau"

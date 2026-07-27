@@ -1,0 +1,45 @@
+[theme]
+builtin = "Gruvbox"
+source = "builtin"
+
+[shell.screenshot]
+directory = "~/Pictures/Screenshots"
+
+[plugins]
+enabled = ["noctalia/screen_recorder", "hazembook/hijri-date"]
+
+[[plugins.source]]
+name = "official"
+kind = "git"
+location = "https://github.com/noctalia-dev/official-plugins"
+
+[[plugins.source]]
+name = "community"
+kind = "git"
+location = "https://github.com/noctalia-dev/community-plugins"
+
+[[plugins.source]]
+name = "local-plugins"
+kind = "path"
+location = "~/.config/noctalia/plugins"
+
+[bar.default]
+radius = 0
+margin_ends = 0
+margin_edge = 0
+margin_opposite_edge = 0
+padding = 0
+center = ["hazembook/hijri-date:date-clock-hijri"]
+end = [
+    "tray",
+    "notifications",
+    "clipboard",
+    "volume",
+    "brightness",
+    "battery",
+    "keyboard_layout",
+    "bluetooth",
+    "network",
+    "session"
+]
+start = ["control-center", "screenshot", "noctalia/screen_recorder:recorder", "workspaces", "active_window"]
