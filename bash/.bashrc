@@ -32,7 +32,13 @@ export BUN_INSTALL="$HOME/.bun"
 export PNPM_HOME="$HOME/.local/share/pnpm"
 export FLUTTER_ROOT="$HOME/develop/flutter"
 export ANDROID_HOME="$HOME/develop/android-sdk"
-export JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
+if [ -z "${JAVA_HOME-}" ]; then
+    _java_path="$(command -v java 2>/dev/null)"
+    if [ -n "$_java_path" ]; then
+        export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$_java_path")")")"
+    fi
+    unset _java_path
+fi
 
 # --- 2. SHELL OPTIONS & BEHAVIOR ---
 set -o vi # Enable vi mode keybindings
@@ -185,7 +191,7 @@ alias nb='n ~/.bashrc'
 alias nf='n ~/.config/fish/config.fish'
 alias nx='n ~/.xinitrc'
 alias nt='n ~/.tmux.conf.local'
-alias nalc='n ~/.config/alacritty/alacritty.yml'
+alias nalc='n ~/.config/alacritty/alacritty.toml'
 alias nk='n ~/.config/kitty/kitty.conf'
 alias ni3='n ~/.config/i3/config'
 alias nq='n ~/.config/qtile/config.py'
@@ -404,4 +410,4 @@ cpp_watch() {
 [ -x "$(command -v atuin)" ] && eval "$(atuin init bash --disable-up-arrow)"
 [ -x "$(command -v pipx)" ] && eval "$(register-python-argcomplete pipx)"
 [ -x "$(command -v jj)" ] && source <(jj util completion bash)
-eval "$(~/.local/bin/mise activate bash)"
+if command -v mise &>/dev/null; then eval "$(mise activate bash)"; fi

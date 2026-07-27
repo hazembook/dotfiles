@@ -30,7 +30,12 @@ set -gx LESS_TERMCAP_us (printf "\e[01;32m")
 set -gx BUN_INSTALL "$HOME/.bun"
 set -gx PNPM_HOME "$HOME/.local/share/pnpm"
 set -gx FLUTTER_ROOT "$HOME/develop/flutter"
-set -gx JAVA_HOME "/usr/lib/jvm/java-17-openjdk"
+if not set -q JAVA_HOME
+    set -l _java_path (command -v java 2>/dev/null)
+    if test -n "$_java_path"
+        set -gx JAVA_HOME (dirname (dirname (readlink -f $_java_path)))
+    end
+end
 set -gx ANDROID_HOME "$HOME/develop/android-sdk"
 
 # --- 3. PATH MANAGEMENT ---
@@ -151,7 +156,7 @@ alias nb 'n ~/.bashrc'
 alias nf 'n ~/.config/fish/config.fish'
 alias nx 'n ~/.xinitrc'
 alias nt 'n ~/.tmux.conf.local'
-alias nalc 'n ~/.config/alacritty/alacritty.yml'
+alias nalc 'n ~/.config/alacritty/alacritty.toml'
 alias nk 'n ~/.config/kitty/kitty.conf'
 alias ni3 'n ~/.config/i3/config'
 alias nq 'n ~/.config/qtile/config.py'
