@@ -47,12 +47,12 @@ start = ["control-center", "screenshot", "noctalia/screen_recorder:recorder", "w
 [idle]
 pre_action_fade_seconds = 2.0
 
-[idle.behavior.lock]
+[idle.behavior.screen-off]
 timeout = 300
-action = "lock"
+action = "screen_off"
 enabled = true
 
-[idle.behavior.screen-off]
+[idle.behavior.lock]
 timeout = 330
-action = "screen_off"
+action = "lock"
 enabled = true
