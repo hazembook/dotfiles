@@ -46,7 +46,6 @@ function update()
   noctalia.setUpdateInterval(1000)
 
   barWidget.setFont("Amiri")
-  barWidget.setGlyph("calendar-time")
 
   local todayDMY = os.date("%d-%m-%Y")
   local cachedDate = noctalia.state.get("cached_date")
