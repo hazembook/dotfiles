@@ -30,35 +30,69 @@ set -gx LESS_TERMCAP_us (printf "\e[01;32m")
 set -gx BUN_INSTALL "$HOME/.bun"
 set -gx PNPM_HOME "$HOME/.local/share/pnpm"
 set -gx FLUTTER_ROOT "$HOME/develop/flutter"
+set -gx ANDROID_HOME "$HOME/develop/android-sdk"
+
+# Safe JAVA_HOME Auto-Detection
 if not set -q JAVA_HOME
     set -l _java_path (command -v java 2>/dev/null)
     if test -n "$_java_path"
-        set -gx JAVA_HOME (dirname (dirname (readlink -f $_java_path)))
+        set -l _java_real (readlink -f $_java_path 2>/dev/null)
+        if test -n "$_java_real"
+            set -gx JAVA_HOME (dirname (dirname $_java_real))
+        end
     end
 end
-set -gx ANDROID_HOME "$HOME/develop/android-sdk"
 
-# --- 3. PATH MANAGEMENT ---
-fish_add_path "$HOME/.local/bin"
-fish_add_path "$HOME/go/bin"
-fish_add_path "$FLUTTER_ROOT/bin"
-fish_add_path "$HOME/.config/emacs/bin"
-fish_add_path "$HOME/.local/share/gem/ruby/3.3.0/bin"
-fish_add_path "$HOME/.pub-cache/bin"
-fish_add_path "$HOME/.local/share/JetBrains/Toolbox/scripts"
-fish_add_path "$HOME/.cargo/bin"
-fish_add_path "$BUN_INSTALL/bin"
-fish_add_path "$HOME/.local/share/fnm"
-fish_add_path "$PNPM_HOME"
-fish_add_path "$HOME/.shorebird/bin"
-fish_add_path "$HOME/.turso"
-fish_add_path "$HOME/.atuin/bin"
-fish_add_path "$JAVA_HOME/bin"
-fish_add_path "/var/lib/flatpak/exports/bin"
-fish_add_path "$HOME/.local/share/flatpak/exports/bin"
-fish_add_path "$ANDROID_HOME/cmdline-tools/latest/bin/"
-fish_add_path "$ANDROID_HOME/platform-tools/"
-fish_add_path "$ANDROID_HOME/emulator/"
+# --- 3. SAFE PATH MANAGEMENT ---
+function add_to_path
+    for dir in $argv
+        # Guard: Ensure directory exists on disk and is non-empty string
+        if test -n "$dir" -a -d "$dir"
+            fish_add_path -g "$dir"
+        end
+    end
+end
+
+# --- Core Developer Tools ---
+add_to_path "$HOME/.local/bin"
+add_to_path "$HOME/go/bin"
+add_to_path "$HOME/.cargo/bin"
+add_to_path "$HOME/.config/emacs/bin"
+add_to_path "$HOME/.pub-cache/bin"
+add_to_path "$HOME/.local/share/JetBrains/Toolbox/scripts"
+add_to_path "$HOME/.atuin/bin"
+add_to_path "$HOME/.turso"
+add_to_path "$HOME/.turso/bin"
+
+# --- Dynamic Ruby Gem Binaries ---
+if type -q ruby
+    set -l _ruby_gem_dir (ruby -e 'puts Gem.user_dir' 2>/dev/null)
+    if test -n "$_ruby_gem_dir"
+        add_to_path "$_ruby_gem_dir/bin"
+    end
+end
+
+# --- Variable-Dependent Paths (Guarded against empty vars) ---
+if set -q FLUTTER_ROOT; add_to_path "$FLUTTER_ROOT/bin"; end
+if set -q BUN_INSTALL;  add_to_path "$BUN_INSTALL/bin";  end
+if set -q PNPM_HOME;    add_to_path "$PNPM_HOME";        end
+if set -q JAVA_HOME;    add_to_path "$JAVA_HOME/bin";    end
+
+# --- Android SDK ---
+if set -q ANDROID_HOME
+    add_to_path "$ANDROID_HOME/cmdline-tools/latest/bin"
+    add_to_path "$ANDROID_HOME/platform-tools"
+    add_to_path "$ANDROID_HOME/emulator"
+end
+
+# --- System & Misc ---
+add_to_path "$HOME/.local/share/fnm"
+add_to_path "$HOME/.shorebird/bin"
+add_to_path "/var/lib/flatpak/exports/bin"
+add_to_path "$HOME/.local/share/flatpak/exports/bin"
+
+# Cleanup temporary helper
+functions -e add_to_path
 
 # --- 4. ALIASES ---
 
@@ -166,16 +200,9 @@ alias nw 'n ~/.config/waybar/config.jsonc'
 alias nh 'n ~/.config/hypr/hyprland.conf'
 
 # Default 'emacs' command opens IN the terminal (-nw)
-# If the server isn't running, -a '' automatically starts the daemon!
 alias emacs "emacsclient -nw -a ''"
-
-# Alias 'em' as a short command for quick edits
 alias em "emacsclient -nw -a ''"
-
-# Optional: 'gemacs' for the rare times you WANT a GUI window
 alias gemacs "emacsclient -c -a '' &"
-
-# Restart the Emacs daemon
 alias rem "killall emacs; command emacs --daemon"
 
 # Neovim Profiles

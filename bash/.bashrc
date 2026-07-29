@@ -4,8 +4,8 @@
 
 # If not running interactively, don't do anything
 case $- in
-    *i*) ;;
-      *) return;;
+*i*) ;;
+*) return ;;
 esac
 
 # --- 1. ENVIRONMENT VARIABLES ---
@@ -19,23 +19,31 @@ export MANPAGER="nvim +Man!"
 export CHROME_EXECUTABLE="chromium"
 
 # Colored man pages
-export LESS_TERMCAP_mb=$(printf "\e[01;31m")
-export LESS_TERMCAP_md=$(printf "\e[01;31m")
-export LESS_TERMCAP_me=$(printf "\e[0m")
-export LESS_TERMCAP_se=$(printf "\e[0m")
-export LESS_TERMCAP_so=$(printf "\e[01;44;33m")
-export LESS_TERMCAP_ue=$(printf "\e[0m")
-export LESS_TERMCAP_us=$(printf "\e[01;32m")
+LESS_TERMCAP_mb="$(printf '\e[01;31m')"
+LESS_TERMCAP_md="$(printf '\e[01;31m')"
+LESS_TERMCAP_me="$(printf '\e[0m')"
+LESS_TERMCAP_se="$(printf '\e[0m')"
+LESS_TERMCAP_so="$(printf '\e[01;44;33m')"
+LESS_TERMCAP_ue="$(printf '\e[0m')"
+LESS_TERMCAP_us="$(printf '\e[01;32m')"
+export LESS_TERMCAP_mb LESS_TERMCAP_md LESS_TERMCAP_me LESS_TERMCAP_se LESS_TERMCAP_so LESS_TERMCAP_ue LESS_TERMCAP_us
 
 # Development-specific environment variables
 export BUN_INSTALL="$HOME/.bun"
 export PNPM_HOME="$HOME/.local/share/pnpm"
 export FLUTTER_ROOT="$HOME/develop/flutter"
 export ANDROID_HOME="$HOME/develop/android-sdk"
+
+# Safe JAVA_HOME Auto-Detection
 if [ -z "${JAVA_HOME-}" ]; then
     _java_path="$(command -v java 2>/dev/null)"
     if [ -n "$_java_path" ]; then
-        export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$_java_path")")")"
+        _java_real="$(readlink -f "$_java_path" 2>/dev/null)"
+        if [ -n "$_java_real" ]; then
+            JAVA_HOME="$(dirname "$(dirname "$_java_real")")"
+            export JAVA_HOME
+        fi
+        unset _java_real
     fi
     unset _java_path
 fi
@@ -52,37 +60,60 @@ shopt -s expand_aliases # Expand aliases
 shopt -s checkwinsize   # Check window size after each command
 
 bind "set completion-ignore-case on"
-complete -c doas
+complete -c doas 2>/dev/null || true
 
-# --- 3. PATH MANAGEMENT ---
+# --- 3. SAFE PATH MANAGEMENT ---
 add_to_path() {
+    # Guard 1: Ensure argument is non-empty
+    [ -z "$1" ] && return
+
+    # Guard 2: Ensure directory exists on disk and isn't already in PATH
     if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
         export PATH="$1:$PATH"
     fi
 }
 
-# Prepend all custom bin directories to PATH
+# --- Core Developer Tools ---
 add_to_path "$HOME/.local/bin"
 add_to_path "$HOME/go/bin"
-add_to_path "$FLUTTER_ROOT/bin"
+add_to_path "$HOME/.cargo/bin"
 add_to_path "$HOME/.config/emacs/bin"
-add_to_path "$HOME/.local/share/gem/ruby/3.3.0/bin"
 add_to_path "$HOME/.pub-cache/bin"
 add_to_path "$HOME/.local/share/JetBrains/Toolbox/scripts"
-add_to_path "$HOME/.cargo/bin"
-add_to_path "$BUN_INSTALL/bin"
-add_to_path "$HOME/.local/share/fnm"
-add_to_path "$PNPM_HOME"
-add_to_path "$HOME/.shorebird/bin"
 add_to_path "$HOME/.atuin/bin"
-add_to_path "$JAVA_HOME/bin"
-add_to_path "$ANDROID_HOME/cmdline-tools/latest/bin"
-add_to_path "$ANDROID_HOME/platform-tools"
-add_to_path "$ANDROID_HOME/emulator"
+add_to_path "$HOME/.turso"
+add_to_path "$HOME/.turso/bin"
+
+# --- Dynamic Ruby Gem Binaries ---
+if command -v ruby >/dev/null 2>&1; then
+    _ruby_gem_bin="$(ruby -e 'puts Gem.user_dir' 2>/dev/null)/bin"
+    add_to_path "$_ruby_gem_bin"
+    unset _ruby_gem_bin
+fi
+
+# --- Variable-Dependent Paths (Guarded against empty vars) ---
+[ -n "$FLUTTER_ROOT" ] && add_to_path "$FLUTTER_ROOT/bin"
+[ -n "$BUN_INSTALL" ] && add_to_path "$BUN_INSTALL/bin"
+[ -n "$PNPM_HOME" ] && add_to_path "$PNPM_HOME"
+[ -n "$JAVA_HOME" ] && add_to_path "$JAVA_HOME/bin"
+
+# --- Android SDK ---
+if [ -n "$ANDROID_HOME" ]; then
+    add_to_path "$ANDROID_HOME/cmdline-tools/latest/bin"
+    add_to_path "$ANDROID_HOME/platform-tools"
+    add_to_path "$ANDROID_HOME/emulator"
+fi
+
+# --- System & Misc ---
+add_to_path "$HOME/.local/share/fnm"
+add_to_path "$HOME/.shorebird/bin"
 add_to_path "/var/lib/flatpak/exports/bin"
 add_to_path "$HOME/.local/share/flatpak/exports/bin"
 
-# --- 4. ALIASES ---
+# Cleanup path helper function
+unset -f add_to_path
+
+# --- 4. ALIASES & FUNCTIONS ---
 
 ## General & System
 alias c='clear'
@@ -108,7 +139,7 @@ alias llp='DOCKER_HOST=unix:///run/user/1000/podman/podman.sock'
 alias k='kubectl'
 
 ## Safe Operations / Trash CLI
-if command -v trash-put &> /dev/null; then
+if command -v trash-put &>/dev/null; then
     alias rm='trash-put -v'
 else
     alias rm='rm -i'
@@ -124,7 +155,7 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 
 ## File & Directory Listing
-if command -v lsd &> /dev/null; then
+if command -v lsd &>/dev/null; then
     alias ls='lsd -A --group-directories-first'
     alias ll='lsd -Alh --group-directories-first'
     alias l1='lsd -1F --icon never'
@@ -165,7 +196,7 @@ alias df='df -h'
 alias free='free -m'
 
 ## DYNAMIC PACKAGE MANAGER ALIASES
-if command -v xbps-install &> /dev/null; then
+if command -v xbps-install &>/dev/null; then
     # --- Void Linux ---
     alias i="doas xbps-install -S"
     alias u="i; doas xbps-install xbps; doas xbps-install -uv"
@@ -175,7 +206,7 @@ if command -v xbps-install &> /dev/null; then
     alias q="doas xbps-query -Rs"
     alias Q="doas xbps-query -R"
     alias qls="xbps-query --list-manual-pkgs | awk '{sub(/-[^-]+_[0-9]+$/, \"\"); print}'"
-elif command -v pacman &> /dev/null; then
+elif command -v pacman &>/dev/null; then
     # --- Arch Linux ---
     alias i="doas pacman -S --needed"
     alias u="doas pacman -Syu"
@@ -201,16 +232,9 @@ alias nw='n ~/.config/waybar/config.jsonc'
 alias nh='n ~/.config/hypr/hyprland.conf'
 
 # Default 'emacs' command opens IN the terminal (-nw)
-# If the server isn't running, -a '' automatically starts the daemon!
 alias emacs="emacsclient -nw -a ''"
-
-# Alias 'em' as a short command for quick edits
 alias em="emacsclient -nw -a ''"
-
-# Optional: 'gemacs' for the rare times you WANT a GUI window
 alias gemacs="emacsclient -c -a '' &"
-
-# Restart the Emacs daemon
 alias rem="killall emacs; command emacs --daemon"
 
 # Neovim Profiles
@@ -223,7 +247,12 @@ alias tonynvim='NVIM_APPNAME=tonynvim nvim'
 ## Git
 alias lg='lazygit'
 alias gcom='git add . && git commit -m'
-alias lazyg='git add . && git commit -m "$1" && git push'
+
+# (SC2142 Fix): Converted lazyg to a function to accept commit message ($1)
+lazyg() {
+    git add . && git commit -m "$1" && git push
+}
+
 alias push='git remote | xargs -I R git push R main'
 alias pushall='git remote | xargs -I R git push R --all'
 
@@ -268,14 +297,20 @@ alias tv_pause="catt -d 192.168.1.167 pause"
 
 # Universal file extractor
 ex() {
-    if [ ! -f "$1" ]; then echo "'$1' is not a valid file"; return 1; fi
+    if [ ! -f "$1" ]; then
+        echo "'$1' is not a valid file"
+        return 1
+    fi
     case "$1" in
-      *.tar.bz2) tar xjf "$1" ;; *.tar.gz)  tar xzf "$1" ;; *.tar.xz)  tar xf "$1" ;;
-      *.tar.zst) unzstd "$1"  ;; *.bz2)     bunzip2 "$1" ;; *.rar)     unrar x "$1" ;;
-      *.gz)      gunzip "$1"  ;; *.tar)     tar xf "$1"  ;; *.tbz2)    tar xjf "$1" ;;
-      *.tgz)     tar xzf "$1" ;; *.zip)     unzip "$1"   ;; *.Z)       uncompress "$1" ;;
-      *.7z)      7z x "$1"    ;; *.deb)     ar x "$1"    ;;
-      *) echo "'$1' cannot be extracted via ex()"; return 1 ;;
+    *.tar.bz2) tar xjf "$1" ;; *.tar.gz) tar xzf "$1" ;; *.tar.xz) tar xf "$1" ;;
+    *.tar.zst) unzstd "$1" ;; *.bz2) bunzip2 "$1" ;; *.rar) unrar x "$1" ;;
+    *.gz) gunzip "$1" ;; *.tar) tar xf "$1" ;; *.tbz2) tar xjf "$1" ;;
+    *.tgz) tar xzf "$1" ;; *.zip) unzip "$1" ;; *.Z) uncompress "$1" ;;
+    *.7z) 7z x "$1" ;; *.deb) ar x "$1" ;;
+    *)
+        echo "'$1' cannot be extracted via ex()"
+        return 1
+        ;;
     esac
 }
 
@@ -283,10 +318,10 @@ ex() {
 up() {
     local limit="${1:-1}"
     local d=""
-    for ((i=1; i <= limit; i++)); do
+    for ((i = 1; i <= limit; i++)); do
         d="../$d"
     done
-    cd "$d"
+    cd "$d" || return 1
 }
 
 # Grep helper
@@ -302,10 +337,14 @@ whatismyip() {
 
 # Hastebin Upload
 hb() {
-    if [ -z "$1" ] || [ ! -f "$1" ]; then echo "Usage: hb <file>"; return 1; fi
-    local uri="http://bin.christitus.com/documents"
-    local response=$(curl -s -X POST -d @"$1" "$uri")
-    local key=$(echo "$response" | jq -r '.key')
+    if [ -z "$1" ] || [ ! -f "$1" ]; then
+        echo "Usage: hb <file>"
+        return 1
+    fi
+    local uri response key
+    uri="http://bin.christitus.com/documents"
+    response=$(curl -s -X POST -d @"$1" "$uri")
+    key=$(echo "$response" | jq -r '.key')
     if [ "$key" != "null" ]; then
         echo "http://bin.christitus.com/$key"
     else
@@ -315,10 +354,11 @@ hb() {
 
 # Yazi integration
 y() {
-    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+    local tmp cwd
+    tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
     yazi "$@" --cwd-file="$tmp"
-    IFS= read -r -d '' cwd < "$tmp"
-    [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+    IFS= read -r -d '' cwd <"$tmp"
+    [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && { builtin cd -- "$cwd" || return 1; }
     rm -f -- "$tmp"
 }
 
@@ -326,6 +366,7 @@ y() {
 distribution() {
     local dtype="unknown"
     if [ -r /etc/os-release ]; then
+        # shellcheck source=/dev/null
         . /etc/os-release
         dtype=$ID
     fi
@@ -375,11 +416,12 @@ vm-from-iso() {
 
 # File Watcher Wrapper
 _watch_runner() {
-    local pattern="$1"
-    local prompt="$2"
+    local pattern prompt cmd file
+    pattern="$1"
+    prompt="$2"
     shift 2
-    local cmd="$@"
-    local file=$(find . -type f -name "$pattern" | fzf --prompt="$prompt")
+    cmd="$*"
+    file=$(find . -type f -name "$pattern" | fzf --prompt="$prompt")
     if [ -n "$file" ]; then
         echo "Watching: $file"
         echo "$file" | entr -c sh -c "clear; $cmd '$file'"
@@ -395,10 +437,11 @@ js_watch() { _watch_runner '*.js' "Select JS file > " "node"; }
 sh_watch() { _watch_runner '*.sh' "Select Shell script > " "bash"; }
 md_watch() { _watch_runner '*.md' "Select Markdown file > " "glow"; }
 cpp_watch() {
-    local file=$(find . -type f -name '*.cpp' | fzf --prompt="Select C++ file > ")
+    local file base
+    file=$(find . -type f -name '*.cpp' | fzf --prompt="Select C++ file > ")
     if [ -n "$file" ]; then
         echo "Watching: $file"
-        local base=$(basename "$file" .cpp)
+        base=$(basename "$file" .cpp)
         echo "$file" | entr -c sh -c "clear; g++ '$file' -o '$base' && './$base'"
     fi
 }
@@ -409,5 +452,6 @@ cpp_watch() {
 [ -x "$(command -v fnm)" ] && eval "$(fnm env --use-on-cd)"
 [ -x "$(command -v atuin)" ] && eval "$(atuin init bash --disable-up-arrow)"
 [ -x "$(command -v pipx)" ] && eval "$(register-python-argcomplete pipx)"
+# shellcheck source=/dev/null
 [ -x "$(command -v jj)" ] && source <(jj util completion bash)
 if command -v mise &>/dev/null; then eval "$(mise activate bash)"; fi
