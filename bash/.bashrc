@@ -235,7 +235,14 @@ alias nh='n ~/.config/hypr/hyprland.conf'
 alias emacs="emacsclient -nw -a ''"
 alias em="emacsclient -nw -a ''"
 alias gemacs="emacsclient -c -a '' &"
-alias rem="killall emacs; command emacs --daemon"
+rem() {
+    if command -v killall >/dev/null 2>&1; then
+        killall emacs
+    else
+        pkill -x emacs
+    fi
+    command emacs --daemon
+}
 
 # Neovim Profiles
 alias nlazy='NVIM_APPNAME=lazyvim nvim'
