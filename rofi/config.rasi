@@ -1,0 +1,18 @@
+configuration{
+    modi: "window,run,combi";
+    icon-theme: "Oranchelo";
+    show-icons: true;
+    terminal: "kitty";
+    drun-display-format: "{icon} {name}";
+    location: 0;
+    disable-history: false;
+    hide-scrollbar: true;
+    display-combi: " 🖥️  All ";
+    display-window: " 🪟  Window";
+    display-run: " 🏃  Run ";
+    sidebar-mode: true;
+    show-external: true;
+    show-emoji: true;
+}
+
+@theme "catppuccin-mocha"
