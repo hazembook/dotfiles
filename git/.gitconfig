@@ -1,0 +1,63 @@
+[user]
+	email = hazem.shaban.std@gmail.com
+	name = Hazem Shaban
+[init]
+	defaultBranch = main
+[pull]
+	rebase = true
+[core]
+	quotePath = false
+
+[alias]
+    # Atomic workflow helpers
+    aa = add -p                          # Atomic add (patch mode)
+    cm = commit -m                       # Quick commit
+    save = commit -am "WIP: [SAVEPOINT]" # Emergency save (never push)
+    undo = reset --soft HEAD~1           # Undo last commit, keep changes
+    recent = log --oneline -10           # Recent history
+    
+    # Solo branch management
+    publish = "!git push -u origin $(git branch --show-current)"
+    done = "!git checkout staging && git merge --no-ff - && git branch -d @{-1}"
+    
+    # Quality check
+    checkpoint = "!git diff --cached --stat && echo 'Ready to commit? (Ctrl-C to abort)' && read"
+    
+    # Feature workflow
+    feat = "!git checkout -b feat/$1 && git publish" 
+    fix = "!git checkout -b fix/$1 && git publish"
+    
+    # Staging workflow
+    stage = "!git checkout staging && git merge --no-ff $1 && git push origin staging"
+    
+    # Production workflow
+    release = "!git checkout main && git merge --no-ff staging && git tag -a v$1 -m 'Release v$1' && git push origin main && git push origin v$1"
+    
+    # Status helpers
+    st = status
+    co = checkout
+    br = branch
+    
+    # Log helpers
+    lg = log --oneline --graph --decorate --all
+    lga = log --oneline --graph --decorate --all --author-date-order
+    
+    # Diff helpers
+    diffc = diff --cached
+    diffs = diff --stat
+    
+    # Cleanup
+    cleanup = "!git branch --merged | grep -v '^\\*\\|main\\|staging' | xargs -r git branch -d"
+    
+    # Safety
+    please = push --force-with-lease
+    
+    # Commit with conventional commit format helpers
+    feat-commit = "!git aa && git commit -m \"feat($1): $2\""
+    fix-commit = "!git aa && git commit -m \"fix($1): $2\""
+    docs-commit = "!git aa && git commit -m \"docs($1): $2\""
+    test-commit = "!git aa && git commit -m \"test($1): $2\""
+    refactor-commit = "!git aa && git commit -m \"refactor($1): $2\""
+    style-commit = "!git aa && git commit -m \"style($1): $2\""
+    chore-commit = "!git aa && git commit -m \"chore($1): $2\""
+    i18n-commit = "!git aa && git commit -m \"i18n($1): $2\""

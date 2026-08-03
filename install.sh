@@ -27,5 +27,6 @@ ln -sf "$DOTS/fastfetch"            "$HOME/.config/fastfetch"
 
 ln -sf "$DOTS/tmux/.tmux.conf"      "$HOME/.tmux.conf"
 ln -sf "$DOTS/tmux.conf.local"      "$HOME/.tmux.conf.local"
+ln -sf "$DOTS/git/.gitconfig"       "$HOME/.gitconfig"
 
 echo "Done!"
