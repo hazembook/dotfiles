@@ -214,6 +214,27 @@ elif command -v pacman &>/dev/null; then
     alias q="doas pacman -Ss"
     alias Q="doas pacman -Qs"
     alias pu="doas paru"
+elif command -v nala &>/dev/null; then
+    # --- nala (apt frontend) ---
+    alias i="nala install --install-suggests"
+    alias u="nala update"
+    alias uy="nala upgrade"
+    alias r="nala remove"
+    alias q="nala search"
+elif command -v pkg &>/dev/null; then
+    # --- Termux (pkg) ---
+    alias i="pkg install"
+    alias u="pkg update"
+    alias uy="pkg upgrade"
+    alias r="pkg remove"
+    alias q="pkg search"
+elif command -v apt &>/dev/null; then
+    # --- apt ---
+    alias i="apt install"
+    alias u="apt update"
+    alias uy="apt upgrade"
+    alias r="apt remove"
+    alias q="apt search"
 fi
 
 ## Editing Configs
