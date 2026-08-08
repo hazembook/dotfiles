@@ -253,17 +253,26 @@ alias nw='n ~/.config/waybar/config.jsonc'
 alias nh='n ~/.config/hypr/hyprland.conf'
 
 # Default 'emacs' command opens IN the terminal (-nw)
-alias emacs="emacsclient -nw -a ''"
-alias em="emacsclient -nw -a ''"
-alias gemacs="emacsclient -c -a '' &"
-rem() {
-    if command -v killall >/dev/null 2>&1; then
-        killall emacs
-    else
-        pkill -x emacs
-    fi
-    command emacs --daemon
-}
+if [ -d "/data/data/com.termux" ]; then
+    alias emacs="emacs -nw"
+    alias em="emacs -nw"
+    rem() {
+        pkill -x emacs 2>/dev/null || true
+        command emacs -nw
+    }
+else
+    alias emacs="emacsclient -nw -a ''"
+    alias em="emacsclient -nw -a ''"
+    alias gemacs="emacsclient -c -a '' &"
+    rem() {
+        if command -v killall >/dev/null 2>&1; then
+            killall emacs
+        else
+            pkill -x emacs
+        fi
+        command emacs --daemon
+    }
+fi
 
 # Neovim Profiles
 alias nlazy='NVIM_APPNAME=lazyvim nvim'
