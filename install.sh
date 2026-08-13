@@ -9,6 +9,7 @@ echo "Installing dotfiles to $HOME ..."
 mkdir -p "$HOME/.config/fish"
 mkdir -p "$HOME/.config/ghostty"
 mkdir -p "$HOME/.config/alacritty"
+mkdir -p "$HOME/.config/zed"
 
 # Backup real files/dirs before replacing them with symlinks
 backup_item() {
@@ -46,6 +47,8 @@ link_file "$DOTS/alacritty/alacritty.toml"  "$HOME/.config/alacritty/alacritty.t
 link_dir  "$DOTS/alacritty/themes"     "$HOME/.config/alacritty/themes"
 link_dir  "$DOTS/fastfetch"            "$HOME/.config/fastfetch"
 link_dir  "$DOTS/rofi"                 "$HOME/.config/rofi"
+link_file "$DOTS/zed/settings.json"    "$HOME/.config/zed/settings.json"
+link_file "$DOTS/zed/keymap.json"      "$HOME/.config/zed/keymap.json"
 
 link_file "$DOTS/tmux/.tmux.conf"      "$HOME/.tmux.conf"
 link_file "$DOTS/tmux.conf.local"      "$HOME/.tmux.conf.local"

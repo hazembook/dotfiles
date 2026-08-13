@@ -1,0 +1,41 @@
+// Zed keymap
+//
+// For information on binding keys, see the Zed
+// documentation: https://zed.dev/docs/key-bindings
+//
+// To see the default key bindings run `zed: open default keymap`
+// from the command palette.
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      // Oil / dirvish: toggle the project panel
+      "space e": "project_panel::ToggleFocus",
+      // lazygit / magit: toggle the git panel
+      "space l g": "git_panel::ToggleFocus"
+    }
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      // telescope find_files: file finder
+      "space f f": "file_finder::Toggle",
+      // telescope buffers: tab switcher
+      "space f b": "tab_switcher::Toggle",
+      // telescope multigrep: project-wide search
+      "space f g": "pane::DeploySearch",
+      // trouble diagnostics: diagnostics list
+      "space x x": "diagnostics::Deploy",
+      // trouble symbols: outline
+      "space c s": "outline::Toggle",
+      // LSP code actions
+      "space c a": "editor::ToggleCodeActions",
+      // LSP references
+      "space r r": "editor::FindAllReferences",
+      // LSP rename
+      "space r n": "editor::Rename",
+      // show diagnostic float / hover
+      "space v f": "editor::Hover"
+    }
+  }
+]
