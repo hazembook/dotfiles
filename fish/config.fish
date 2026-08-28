@@ -115,7 +115,7 @@ alias diskspace "du -S | sort -n -r | more"
 alias folders 'du -h --max-depth=1'
 alias tree 'tree -CAhF --dirsfirst'
 alias llp 'DOCKER_HOST=unix:///run/user/1000/podman/podman.sock'
-alias dtz 'date +%Y%m%d_%H%M%S'
+alias dtz 'date +%Y%m%d-%H%M%S'
 alias k 'kubectl'
 
 ## Safe Operations / Trash CLI

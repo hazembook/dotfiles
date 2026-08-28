@@ -130,7 +130,7 @@ alias pbpaste='xsel --clipboard --output'
 alias toarab='(wl-paste 2>/dev/null || xclip -o -selection clipboard) | trans -b :ar'
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 alias da='date "+%Y-%m-%d %A %T %Z"'
-alias dtz='date +%Y%m%d_%H%M%S'
+alias dtz='date +%Y%m%d-%H%M%S'
 alias openports='netstat -nape --inet'
 alias diskspace="du -S | sort -n -r | more"
 alias folders='du -h --max-depth=1'
