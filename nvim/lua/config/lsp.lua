@@ -42,12 +42,16 @@ vim.lsp.config('tinymist', {
   }
 })
 
--- Native 0.12 Server Enablement
+-- Native 0.12 Server Enablement.
+-- Missing binaries need no gating: Neovim skips them gracefully and
+-- `:checkhealth vim.lsp` reports "'<binary>' is not executable", which is
+-- how you know what to install. Restart Neovim after installing a tool.
 vim.lsp.enable({
   "bashls",
   "clangd",
   "denols",
   "gopls",
+  "harper_ls",
   "herb_ls",
   "html",
   "lua_ls",

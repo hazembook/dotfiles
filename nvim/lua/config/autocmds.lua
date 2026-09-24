@@ -9,15 +9,20 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   end,
 })
 
--- format on save
+-- format on save (guarded: no-op when no formatting client is attached,
+-- so scratch/empty buffers never emit "[LSP] Format request failed")
 vim.api.nvim_create_autocmd("BufWritePre", {
   desc = "Format buffer on save",
   group = vim.api.nvim_create_augroup("lsp-format-on-save", { clear = true }),
   callback = function(args)
+    local clients = vim.lsp.get_clients({ bufnr = args.buf, method = "textDocument/formatting" })
+    if #clients == 0 then
+      return
+    end
     vim.lsp.buf.format({
       bufnr = args.buf,
       filter = function(client)
-        return client:supports_method("textDocument/formatting")
+        return client:supports_method("textDocument/formatting", args.buf)
       end,
     })
   end,
