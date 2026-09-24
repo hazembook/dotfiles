@@ -42,6 +42,35 @@ vim.lsp.config('tinymist', {
   }
 })
 
+-- Lua config, kickstart-style (nvim-lua/kickstart.nvim): correct runtime +
+-- workspace scoping. Two deliberate deviations from kickstart:
+-- * formatting stays ON: our format-on-save uses lua_ls (no stylua here).
+-- * no workspace.library: lazydev.nvim already provides it, and kickstart
+--   itself notes the full-runtime library is slow (nvim-lspconfig#3189).
+vim.lsp.config('lua_ls', {
+  on_init = function(client)
+    if client.workspace_folders then
+      local path = client.workspace_folders[1].name
+      if
+        path ~= vim.fn.stdpath("config")
+        and (
+          vim.uv.fs_stat(path .. "/.luarc.json") or vim.uv.fs_stat(path .. "/.luarc.jsonc")
+        )
+      then
+        return -- project has its own config; don't override
+      end
+    end
+    client.config.settings.Lua = vim.tbl_deep_extend(
+      "force",
+      client.config.settings.Lua,
+      {
+        runtime = { version = "LuaJIT" },
+        workspace = { checkThirdParty = false },
+      }
+    )
+  end,
+})
+
 -- Native 0.12 Server Enablement.
 -- Missing binaries need no gating: Neovim skips them gracefully and
 -- `:checkhealth vim.lsp` reports "'<binary>' is not executable", which is
