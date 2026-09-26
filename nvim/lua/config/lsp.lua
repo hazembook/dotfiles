@@ -79,6 +79,7 @@ vim.lsp.enable({
   "bashls",
   "clangd",
   "denols",
+  "expert",
   "gopls",
   "harper_ls",
   "herb_ls",
