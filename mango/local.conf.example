@@ -1,0 +1,20 @@
+# MangoWC Local Overrides (machine-specific, not synced)
+# Copy to ~/.config/mango/local.conf and adjust
+
+# =============================================================================
+# EXAMPLE: Laptop
+# =============================================================================
+# output=eDP-1,enabled=1
+# exec_once=autorandr --change
+
+# =============================================================================
+# EXAMPLE: Desktop
+# =============================================================================
+# output=DP-1,enabled=1,mode=2560x1440@144,position=0,0
+# output=HDMI-A-1,enabled=1,mode=1920x1080@60,position=2560,0
+
+# =============================================================================
+# EXAMPLE: Different terminal
+# =============================================================================
+# var=term,kitty
+# var=term_fallback,alacritty

@@ -1,0 +1,188 @@
+/* =========================================================
+ * mangobar style — Gruvbox Dark Hard
+ * Native modules only: bar, tags, layout, window, tray,
+ * network, pulseaudio, backlight, battery, keyboardlayout,
+ * cpu, memory, clock, custom-hijri-date
+ * ========================================================= */
+
+/* --- Base font (Meslo Nerd Font like your ghostty) --- */
+* {
+    font-family: "Meslo Nerd Font", "JetBrainsMono Nerd Font", "Noto Sans Arabic";
+    font-size: 14px;
+    font-weight: 500;
+    color: #ebdbb2;           /* Gruvbox fg1 */
+    background-color: #1d2021; /* Gruvbox bg0_h */
+    padding: 0px 10px;
+    margin: 4px 2px;
+    border-radius: 0px;       /* Match noctalia: radius = 0 */
+}
+
+/* ==================== BAR CONTAINER ==================== */
+#bar {
+    background: none;
+    margin: 4px 8px;
+    border-radius: 0px;
+}
+#bar.sel {
+    background: none;
+}
+
+/* ==================== WORKSPACES (Tags) ==================== */
+#workspaces {
+    padding: 0px 8px;
+    margin: 0px 2px;
+}
+
+/* Active tag (focused monitor) */
+#workspaces button.active {
+    background-color: #fe8019;   /* Gruvbox orange */
+    color: #1d2021;
+    font-weight: bold;
+}
+
+/* Occupied tag (has windows) */
+#workspaces button.occupied {
+    background-color: #3c3836;   /* Gruvbox bg1 */
+    color: #ebdbb2;              /* Gruvbox fg1 */
+}
+
+/* Urgent tag (window needs attention) */
+#workspaces button.urgent {
+    background-color: #fb4934;   /* Gruvbox red */
+    color: #1d2021;
+}
+
+/* Empty tag */
+#workspaces button.empty {
+    background-color: #282828;   /* Gruvbox bg0 */
+    color: #928374;              /* Gruvbox gray */
+}
+
+/* Hover */
+#workspaces button:hover {
+    background-color: #fabd2f;   /* Gruvbox yellow */
+    color: #1d2021;
+}
+
+/* Overview mode */
+#overview {
+    background-color: #fb4934;
+    color: #1d2021;
+}
+
+/* ==================== LAYOUT INDICATOR ==================== */
+#layout {
+    background-color: #d3869b;   /* Gruvbox purple */
+    color: #1d2021;
+    min-width: 36px;
+    margin: 4px 6px;
+}
+
+/* ==================== WINDOW TITLE ==================== */
+#window {
+    background-color: #d3869b;   /* Gruvbox purple */
+    color: #1d2021;
+    max-width: 400px;
+}
+
+/* ==================== RIGHT-SIDE MODULES ==================== */
+
+/* Date */
+#clock.date {
+    background-color: #b8bb26;   /* Gruvbox green */
+    color: #1d2021;
+}
+
+/* Time */
+#clock.time {
+    background-color: #8ec07c;   /* Gruvbox aqua */
+    color: #1d2021;
+}
+
+/* CPU */
+#cpu {
+    background-color: #c4b595;   /* Gruvbox fg3-ish */
+    color: #1d2021;
+    padding: 0px 12px;
+}
+
+/* Memory */
+#memory {
+    background-color: #83a598;   /* Gruvbox blue */
+    color: #1d2021;
+}
+
+/* Brightness */
+#backlight {
+    background-color: #d3869b;   /* Gruvbox purple */
+    color: #1d2021;
+}
+
+/* Volume */
+#pulseaudio {
+    background-color: #fabd2f;   /* Gruvbox yellow */
+    color: #1d2021;
+}
+
+/* Network */
+#network {
+    background-color: #b8bb26;   /* Gruvbox green */
+    color: #1d2021;
+}
+#network.wifi {
+    background-color: #83a598;   /* Gruvbox blue */
+    color: #1d2021;
+}
+#network.ethernet {
+    background-color: #b8bb26;   /* Gruvbox green */
+    color: #1d2021;
+}
+#network.disconnected {
+    background-color: #fb4934;   /* Gruvbox red */
+    color: #1d2021;
+}
+
+/* Battery */
+#battery {
+    background-color: #fe8019;   /* Gruvbox orange */
+    color: #1d2021;
+}
+
+/* Keyboard Layout */
+#keyboardlayout {
+    background-color: #bd788a;   /* Gruvbox red-alt */
+    color: #1d2021;
+}
+
+/* Tray */
+#tray {
+    background-color: #504945;   /* Gruvbox bg2 */
+    padding: 0px 12px;
+}
+
+/* ==================== CUSTOM MODULES ==================== */
+#custom-hijri-date {
+    background-color: #83a598;   /* Gruvbox blue */
+    color: #1d2021;
+    font-family: "Amiri", "Meslo Nerd Font", "Noto Sans Arabic";
+    font-size: 13px;
+    padding: 0px 14px;
+    margin: 4px 4px;
+}
+
+/* ==================== MENU (right-click context menus) ==================== */
+menu {
+    background-color: #1d2021;
+    border-color: #ebdbb2;
+    border-radius: 8px;
+    font-size: 13px;
+    padding: 4px;
+}
+menuitem {
+    color: #ebdbb2;
+    padding: 6px 12px;
+}
+menuitem:hover {
+    color: #1d2021;
+    background-color: #b8bb26;
+}

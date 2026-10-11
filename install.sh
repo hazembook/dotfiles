@@ -10,6 +10,8 @@ mkdir -p "$HOME/.config/fish"
 mkdir -p "$HOME/.config/ghostty"
 mkdir -p "$HOME/.config/alacritty"
 mkdir -p "$HOME/.config/zed"
+mkdir -p "$HOME/.config/mango/scripts"
+mkdir -p "$HOME/.config/mangobar"
 
 # Backup real files/dirs before replacing them with symlinks
 backup_item() {
@@ -42,6 +44,8 @@ link_dir  "$DOTS/nvim"                 "$HOME/.config/nvim"
 link_dir  "$DOTS/niri"                 "$HOME/.config/niri"
 link_dir  "$DOTS/noctalia"             "$HOME/.config/noctalia"
 link_dir  "$DOTS/doom"                 "$HOME/.config/doom"
+link_dir  "$DOTS/mango"                "$HOME/.config/mango"
+link_dir  "$DOTS/mangobar"             "$HOME/.config/mangobar"
 link_file "$DOTS/ghostty/config"       "$HOME/.config/ghostty/config"
 link_file "$DOTS/alacritty/alacritty.toml"  "$HOME/.config/alacritty/alacritty.toml"
 link_dir  "$DOTS/alacritty/themes"     "$HOME/.config/alacritty/themes"

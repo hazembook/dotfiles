@@ -1,0 +1,164 @@
+// mangobar config — Native modules only (Gruvbox theme)
+// Only uses modules built into mangobar
+
+{
+    "layer": "top",
+    "height": 32,
+    "buffer-scale": 1,
+    "sys-interval": 2,
+
+    "modules-left": [
+        "workspaces",
+        "layout",
+        "window"
+    ],
+    "modules-center": [
+        "custom/hijri-date"
+    ],
+    "modules-right": [
+        "tray",
+        "network",
+        "pulseaudio",
+        "backlight",
+        "battery",
+        "keyboardlayout",
+        "cpu",
+        "memory",
+        "clock#date",
+        "clock#time"
+    ],
+
+    // ============================================================
+    // WORKSPACES (Tags 1-9) — Synced with mangowm via IPC
+    // ============================================================
+    "workspaces": {
+        "hide-empty": true,
+        "tag-names": ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        "overview-label": "OVERVIEW",
+        "on-click": "activate",
+        "on-click-right": "toggle"
+    },
+
+    // ============================================================
+    // LAYOUT INDICATOR (Tile/Scroller/Monocle/Grid/Deck)
+    // ============================================================
+    "layout": {
+        "format": "{}"
+    },
+
+    // ============================================================
+    // ACTIVE WINDOW TITLE
+    // ============================================================
+    "window": {
+        "format": "{}",
+        "max-length": 60,
+        "ellipsize": "end"
+    },
+
+    // ============================================================
+    // SYSTEM TRAY (StatusNotifierItem / DBusMenu)
+    // ============================================================
+    "tray": {
+        "icon-size": 22,
+        "spacing": 8
+    },
+
+    // ============================================================
+    // NETWORK
+    // ============================================================
+    "network": {
+        "format": "{icon} {ifname}",
+        "format-wifi": "{signal} {ssid}",
+        "format-disconnected": "{icon}",
+        "icon-wifi": "󰖩",
+        "icon-ethernet": "󰈀",
+        "icon-disconnected": "󰖪",
+        "signal-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
+        "format-alt": "↓{down} ↑{up}",
+        "on-click": "nm-connection-editor"
+    },
+
+    // ============================================================
+    // PULSEAUDIO (Volume)
+    // ============================================================
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "󰝟 {volume}%",
+        "icons": ["󰕿", "󰖀", "󰕾"],
+        "icon-bluetooth": "󰂯",
+        "on-click": "pamixer -t",
+        "on-scroll-up": "pamixer -i 3",
+        "on-scroll-down": "pamixer -d 3"
+    },
+
+    // ============================================================
+    // BACKLIGHT (Brightness)
+    // ============================================================
+    "backlight": {
+        "format": "{icon} {percent}%",
+        "icons": ["󰃚", "󰃛", "󰃜", "󰃝", "󰃞", "󰃟"],
+        "on-scroll-up": "brightnessctl set +3%",
+        "on-scroll-down": "brightnessctl set 3%-",
+        "on-click": "brightnessctl set 1%"
+    },
+
+    // ============================================================
+    // BATTERY
+    // ============================================================
+    "battery": {
+        "format": "{icon} {percent}% {ac}",
+        "icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+        "icon-charging": "󰂄",
+        "icon-ac": "",
+        "hide-on-ac": false
+    },
+
+    // ============================================================
+    // KEYBOARD LAYOUT (US/Arabic)
+    // ============================================================
+    "keyboardlayout": {
+        "format": "{short}",
+        "show-flag": true
+    },
+
+    // ============================================================
+    // CPU
+    // ============================================================
+    "cpu": {
+        "format": "󰻠 {load}%"
+    },
+
+    // ============================================================
+    // MEMORY
+    // ============================================================
+    "memory": {
+        "format": "󰍛 {}%"
+    },
+
+    // ============================================================
+    // CLOCK — DATE
+    // ============================================================
+    "clock#date": {
+        "format": "󰃭 {:L%b %d · %A}",
+        "locale": "en_US.UTF-8"
+    },
+
+    // ============================================================
+    // CLOCK — TIME
+    // ============================================================
+    "clock#time": {
+        "format": "󰥔 {:L%H:%M}",
+        "locale": "en_US.UTF-8"
+    },
+
+    // ============================================================
+    // CUSTOM MODULE: HIJRI DATE
+    // ============================================================
+    "custom/hijri-date": {
+        "format": "{}",
+        "exec": "~/.config/mango/scripts/hijri-date.sh",
+        "interval": 60,
+        "return-type": "json",
+        "on-click": "gsimplecal"
+    }
+}
