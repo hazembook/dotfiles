@@ -58,21 +58,21 @@ json_get() {
 format_hijri() {
     local data="$1"
     local day month year weekday_ar
-    day=$(json_get "$data" '.date.hijri.day')
-    month=$(json_get "$data" '.date.hijri.month.ar')
-    year=$(json_get "$data" '.date.hijri.year')
-    weekday_ar=$(json_get "$data" '.date.hijri.weekday.ar')
+    day=$(json_get "$data" '.data.date.hijri.day')
+    month=$(json_get "$data" '.data.date.hijri.month.ar')
+    year=$(json_get "$data" '.data.date.hijri.year')
+    weekday_ar=$(json_get "$data" '.data.date.hijri.weekday.ar')
     printf '%s %s %s %s' "$weekday_ar" "$day" "$month" "$year"
 }
 
 get_gregorian_weekday_en() {
     local data="$1"
-    json_get "$data" '.date.gregorian.weekday.en'
+    json_get "$data" '.data.date.gregorian.weekday.en'
 }
 
 get_maghrib() {
     local data="$1"
-    json_get "$data" '.timings.Maghrib' | cut -d: -f1,2
+    json_get "$data" '.data.timings.Maghrib' | cut -d: -f1,2
 }
 
 # ============================================================
@@ -113,7 +113,10 @@ if [[ "$need_fetch" == "true" ]]; then
     # Parse response
     code=$(json_get "$response" '.code')
     if [[ "$code" != "200" ]]; then
-        output_json "$hijri_display"
+        display="$hijri_display"
+        if [[ -z "$display" ]]; then display="$hijri_today"; fi
+        if [[ -z "$display" ]]; then display="⚠ Hijri unavailable"; fi
+        output_json "$display"
         exit 0
     fi
 
@@ -152,6 +155,9 @@ if [[ "$need_fetch" == "true" ]]; then
         --argjson cached_at "$now" \
         '{date: $date, hijri_today: $hijri_today, hijri_display: $hijri_display, maghrib: $maghrib, cached_at: $cached_at}')
     save_cache "$cache_json"
+
+    # Set display for output
+    display="$hijri_display"
 else
     # Use cache - check Maghrib for display
     if [[ "$current_time" > "$cached_maghrib" ]]; then
