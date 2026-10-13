@@ -11,7 +11,12 @@ vim.opt.wrap = true
 
 vim.opt.swapfile = false
 vim.opt.backup = false
-vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
+-- Fixed undo dir (deliberately NOT stdpath("state"), which is volatile).
+-- Neovim does not create undodir itself — undo persistence silently fails
+-- if the directory is missing.
+local undodir = vim.fn.expand("~/.vim/undodir")
+vim.fn.mkdir(undodir, "p")
+vim.opt.undodir = undodir
 vim.opt.undofile = true
 
 vim.opt.hlsearch = false

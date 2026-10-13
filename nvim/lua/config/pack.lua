@@ -22,7 +22,10 @@ vim.api.nvim_create_autocmd("PackChanged", {
         require("nvim-treesitter").update()
       end)
     elseif name == "markdown-preview.nvim" then
-      if not ev.data.active then
+      -- Check rtp, not ev.data.active: with a custom `load` function the
+      -- plugin is registered as active without being loaded, and the
+      -- autoload call below needs it on rtp to work.
+      if not vim.tbl_contains(vim.api.nvim_list_runtime_paths(), ev.data.path) then
         vim.cmd.packadd("markdown-preview.nvim")
       end
       pcall(vim.fn["mkdp#util#install"])
@@ -76,12 +79,29 @@ vim.pack.add({
   -- languages / tools
   gh("akinsho/flutter-tools.nvim"),
   gh("lervag/vimtex"),
-  gh("iamcco/markdown-preview.nvim"),
   gh("yousefhadder/markdown-plus.nvim"),
   gh("adibhanna/nvim-notes"),
 
   -- AI completion (inline suggestions; blink.cmp handles the popup menu)
   gh("supermaven-inc/supermaven-nvim"),
+})
+
+-- markdown-preview.nvim: loaded lazily, in markdown buffers only (per its
+-- README). `load` must be an add() option, not a spec field — a function
+-- takes full responsibility for loading, keeping the plugin off
+-- runtimepath until the FileType autocmd fires.
+vim.pack.add({
+  gh("iamcco/markdown-preview.nvim"),
+}, {
+  load = function()
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = "markdown",
+      once = true,
+      callback = function()
+        vim.cmd.packadd("markdown-preview.nvim")
+      end,
+    })
+  end,
 })
 
 -- ---------------------------------------------------------------------------
@@ -190,7 +210,18 @@ require("blink.cmp").setup({
   appearance = { nerd_font_variant = "mono" },
   signature = { enabled = true },
   completion = { documentation = { auto_show = true } },
-  sources = { default = { "lsp", "path", "snippets", "buffer" } },
+  sources = {
+    -- lazydev first (per lazydev.nvim README): module names in require(...),
+    -- @module annotations; score_offset makes it top priority
+    default = { "lazydev", "lsp", "path", "snippets", "buffer" },
+    providers = {
+      lazydev = {
+        name = "LazyDev",
+        module = "lazydev.integrations.blink",
+        score_offset = 100,
+      },
+    },
+  },
   fuzzy = { implementation = "prefer_rust_with_warning" },
 })
 
