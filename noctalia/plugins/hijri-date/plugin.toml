@@ -36,6 +36,11 @@ default = "3"
 id = "date-clock-hijri"
 entry = "hijri_date_widget.luau"
 
+# Desktop / lock-screen widget: the same Hijri date, without the clock.
+[[desktop_widget]]
+id = "hijri-date"
+entry = "hijri_date_desktop.luau"
+
 # Background service: owns the aladhan.com requests and publishes the date
 # that is currently valid to the widget.
 [[service]]
