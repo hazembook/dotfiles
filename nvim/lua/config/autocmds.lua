@@ -21,6 +21,9 @@ vim.api.nvim_create_autocmd("BufWritePre", {
     end
     vim.lsp.buf.format({
       bufnr = args.buf,
+      -- Default is 1000ms, which is tight for rust_analyzer/gopls on large
+      -- files (they answer with a timeout warning instead of formatting).
+      timeout_ms = 3000,
       filter = function(client)
         return client:supports_method("textDocument/formatting", args.buf)
       end,

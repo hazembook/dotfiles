@@ -35,11 +35,11 @@ vim.lsp.config('harper_ls', {
   },
 })
 
+-- Root markers only: hardcoding typstExtraArgs = { "main.typ" } would make
+-- tinymist compile a nonexistent main.typ in projects whose entry file has
+-- another name.
 vim.lsp.config('tinymist', {
   root_markers = { 'main.typ', 'typst.toml', '.git' },
-  settings = {
-    typstExtraArgs = { "main.typ" }
-  }
 })
 
 -- Lua config, kickstart-style (nvim-lua/kickstart.nvim): correct runtime +
@@ -72,9 +72,14 @@ vim.lsp.config('lua_ls', {
 })
 
 -- Native 0.12 Server Enablement.
--- Missing binaries need no gating: Neovim skips them gracefully and
--- `:checkhealth vim.lsp` reports "'<binary>' is not executable", which is
--- how you know what to install. Restart Neovim after installing a tool.
+-- vim.lsp.enable() does NOT check for the binary: it only marks the config
+-- as enabled. The check happens later, at client-start time, in
+-- can_start()/validate_cmd() (runtime/lua/vim/lsp.lua), and it only applies
+-- when `cmd` is a table -- a function-form cmd (html, ruby_lsp) is spawned
+-- anyway and logs "Spawning language server ... failed".
+-- `:checkhealth vim.lsp` lists the missing ones ("'<binary>' is not
+-- executable. Configuration will not be used."). Restart Neovim after
+-- installing a tool.
 vim.lsp.enable({
   "bashls",
   "clangd",

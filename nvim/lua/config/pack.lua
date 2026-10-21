@@ -16,11 +16,17 @@ vim.api.nvim_create_autocmd("PackChanged", {
       return
     end
     if name == "telescope-fzf-native.nvim" then
-      vim.system({ "make" }, { cwd = ev.data.path }):wait()
+      local code = vim.system({ "make" }, { cwd = ev.data.path }):wait()
+      if code ~= 0 then
+        vim.notify("telescope-fzf-native.nvim: `make` failed (exit " .. code .. ")", vim.log.levels.ERROR)
+      end
     elseif name == "nvim-treesitter" then
-      pcall(function()
+      local ok, err = pcall(function()
         require("nvim-treesitter").update()
       end)
+      if not ok then
+        vim.notify("nvim-treesitter: update failed: " .. tostring(err), vim.log.levels.WARN)
+      end
     elseif name == "markdown-preview.nvim" then
       -- Check rtp, not ev.data.active: with a custom `load` function the
       -- plugin is registered as active without being loaded, and the
@@ -248,6 +254,7 @@ pcall(function()
     "heex",
     "html",
     "javascript",
+    "json",
     "lua",
     "markdown",
     "markdown_inline",
@@ -256,15 +263,21 @@ pcall(function()
     "query",
     "ruby",
     "rust",
+    "toml",
     "tsx",
     "typescript",
     "typst",
     "vim",
     "vimdoc",
+    "yaml",
     "zig",
   }
+  -- vim.treesitter.language.add() *returns* nil + "No parser for language X"
+  -- when the parser is missing, it does not throw -- so pcall() alone would
+  -- always report "present" and the install below would never run.
   local missing = vim.tbl_filter(function(lang)
-    return not pcall(vim.treesitter.language.add, lang)
+    local ok, loaded = pcall(vim.treesitter.language.add, lang)
+    return not (ok and loaded)
   end, wanted)
   if #missing > 0 then
     require("nvim-treesitter").install(missing)

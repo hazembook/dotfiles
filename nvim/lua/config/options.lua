@@ -31,4 +31,7 @@ vim.opt.updatetime = 50
 
 -- vim.opt.colorcolumn = "140"
 
+-- 0.12's default already contains inline:char; drop it so the effective
+-- value is unambiguous instead of relying on parse order.
+vim.opt.diffopt:remove("inline:char")
 vim.opt.diffopt:append("inline:word")
