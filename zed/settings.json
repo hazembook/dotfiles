@@ -17,7 +17,11 @@
     "dock": "left"
   },
   "agent_servers": {
-    "mistral-vibe": {
+    "opencode": {
+      "default_config_options": {
+        "effort": "high",
+        "model": "openrouter/nvidia/nemotron-3.5-super-vl"
+      },
       "type": "registry"
     },
     "Qwen_Code": {
