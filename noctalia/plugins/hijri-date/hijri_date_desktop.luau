@@ -6,8 +6,8 @@
 -- the service, so the date still flips at Maghrib while the session is
 -- locked and the service is idle.
 --
--- It mirrors the bar widget: Gregorian date | clock | Hijri date, in the
--- same font, with the clock and date taken from the shell's own formats.
+-- It mirrors the bar widget's date parts: Gregorian date | Hijri date, in
+-- the same font. The clock next to it is the shell's own clock widget.
 
 local FONT_FAMILY = "Amiri"
 local PLACEHOLDER = "جاري التحميل..."
@@ -38,11 +38,10 @@ end
 function update()
   desktopWidget.setWantsSecondTicks(true)
   local dateText = noctalia.formatTime(noctalia.dateFormat())
-  local clockText = noctalia.formatTime(noctalia.timeFormat())
   desktopWidget.render(ui.label({
-    text = dateText .. " | " .. clockText .. " | " .. (hijriText() or PLACEHOLDER),
+    text = dateText .. " | " .. (hijriText() or PLACEHOLDER),
     fontFamily = FONT_FAMILY,
-    fontSize = 40,
+    fontSize = 32,
     fontWeight = "bold",
     textAlign = "center",
   }))
