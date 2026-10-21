@@ -44,9 +44,9 @@ end = [
     "volume",
     "brightness",
     "battery",
-    "keyboard_layout",
     "bluetooth",
     "network",
+    "keyboard_layout",
     "session"
 ]
 start = [
