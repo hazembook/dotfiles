@@ -86,6 +86,32 @@ local function fetchDay(dateDMY, callback)
   end)
 end
 
+-- Current time in the location's own zone (the zone the prayer times, and
+-- therefore Maghrib, are expressed in).
+local function currentLocationMinutes(zone)
+  local text = noctalia.formatTime("{:%H:%M}", nil, zone)
+  local hh, mm = text:match("(%d+):(%d+)")
+  if hh == nil then
+    return nil
+  end
+  return tonumber(hh) * 60 + tonumber(mm)
+end
+
+-- The Hijri day runs from Maghrib to Maghrib: once Maghrib has passed, the
+-- day that started at it is the current one.
+local function publishDisplay()
+  local today = noctalia.state.get("hijri.today")
+  local tomorrow = noctalia.state.get("hijri.tomorrow")
+  local maghrib = noctalia.state.get("hijri.maghrib")
+  local current = currentLocationMinutes(noctalia.state.get("hijri.timezone"))
+
+  local display = today
+  if maghrib and tomorrow and current ~= nil and current >= maghrib then
+    display = tomorrow
+  end
+  noctalia.state.set("hijri.display", display)
+end
+
 -- Publishes the fetched day plus the day that starts at the coming Maghrib.
 local function applyDay(data, tomorrowData)
   local hijri = data.date.hijri
@@ -114,6 +140,7 @@ local function applyDay(data, tomorrowData)
   noctalia.state.set("hijri.timezone", (data.meta and data.meta.timezone) or nil)
   noctalia.state.set("hijri.fetched_at", os.time())
   noctalia.state.set("hijri.failed_at", nil)
+  publishDisplay()
 end
 
 local function fetchBoth(todayDMY)
@@ -178,4 +205,7 @@ refresh()
 
 function update()
   refresh()
+  -- Recompute the current day every tick: the rollover happens at Maghrib
+  -- without waiting for the next request.
+  publishDisplay()
 end

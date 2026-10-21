@@ -11,27 +11,6 @@
     "method": {
       "description": "Hijri calculation method (3 = Muslim World League, 4 = Umm al-Qura).",
       "label": "Calculation method"
-    },
-    "clock_format": {
-      "description": "Clock format: follow the shell, or force 12-hour/24-hour.",
-      "label": "Clock format",
-      "options": {
-        "system": "Follow the shell",
-        "12h": "12-hour",
-        "24h": "24-hour"
-      }
-    },
-    "date_format": {
-      "description": "Date format: compact (Wed 21 Oct 2026) or the shell's own format.",
-      "label": "Date format",
-      "options": {
-        "compact": "Compact",
-        "system": "Follow the shell"
-      }
-    },
-    "timezone": {
-      "description": "IANA time zone for the clock (e.g. Africa/Tripoli). Empty uses the system time zone.",
-      "label": "Time zone"
     }
   }
 }
