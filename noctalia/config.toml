@@ -68,6 +68,15 @@ stat = "cpu_usage"
 type = "sysmon"
 stat = "ram_pct"
 
+[widget.date-clock-hijri]
+type = "hazembook/hijri-date:date-clock-hijri"
+# Per-widget appearance. These are read from the widget's own settings
+# (resolveWidgetBarCapsuleSpec in config_types.cpp), so they work from the
+# config file. The running bar widget keeps its old appearance until the
+# instance is recreated (re-add it in the bar editor, or restart the shell).
+capsule = true
+font_weight = 700
+
 [idle]
 pre_action_fade_seconds = 2.0
 
