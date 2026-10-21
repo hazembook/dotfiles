@@ -2,6 +2,13 @@
 builtin = "Gruvbox"
 source = "builtin"
 
+[shell]
+# The shell's default date format is "%A, %x", and %x in the C locale is
+# US-ordered (10/21/2026). Use a day-first, compact format everywhere:
+# the bar pill, the lock screen and the calendar all read from these.
+date_format = "%A %e %B %Y"
+time_format = "{:%H:%M}"
+
 [shell.screenshot]
 directory = "~/Pictures/Screenshots"
 
