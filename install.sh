@@ -4,15 +4,6 @@ set -euo pipefail
 DOTS="$(cd "$(dirname "$0")" && pwd)"
 BACKUP_DIR="$HOME/backups/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 
-echo "Installing dotfiles to $HOME ..."
-
-mkdir -p "$HOME/.config/fish"
-mkdir -p "$HOME/.config/ghostty"
-mkdir -p "$HOME/.config/alacritty"
-mkdir -p "$HOME/.config/zed"
-mkdir -p "$HOME/.config/mango/scripts"
-mkdir -p "$HOME/.config/mangobar"
-
 # Backup real files/dirs before replacing them with symlinks
 backup_item() {
     local target="$1"
@@ -37,6 +28,65 @@ link_file() {
     backup_item "$target"
     ln -sf "$src" "$target"
 }
+
+# Every path this script manages, so --check can verify them.
+MANAGED_TARGETS=(
+    "$HOME/.bashrc"
+    "$HOME/.config/fish/config.fish"
+    "$HOME/.config/nvim"
+    "$HOME/.config/niri"
+    "$HOME/.config/noctalia"
+    "$HOME/.config/doom"
+    "$HOME/.config/mango"
+    "$HOME/.config/mangobar"
+    "$HOME/.config/ghostty/config"
+    "$HOME/.config/alacritty/alacritty.toml"
+    "$HOME/.config/alacritty/themes"
+    "$HOME/.config/fastfetch"
+    "$HOME/.config/rofi"
+    "$HOME/.config/zed/settings.json"
+    "$HOME/.config/zed/keymap.json"
+    "$HOME/.tmux.conf"
+    "$HOME/.tmux.conf.local"
+    "$HOME/.gitconfig"
+)
+
+# Report managed paths that are gone, and symlinks whose target moved.
+check_links() {
+    local bad=0
+    for target in "${MANAGED_TARGETS[@]}"; do
+        if [[ -L "$target" ]]; then
+            if [[ ! -e "$target" ]]; then
+                echo "  BROKEN: $target -> $(readlink "$target")"
+                bad=1
+            fi
+        elif [[ ! -e "$target" ]]; then
+            echo "  MISSING: $target"
+            bad=1
+        fi
+    done
+    if [[ $bad -eq 0 ]]; then
+        echo "All managed paths are in place."
+    else
+        echo "Run this script without --check to re-create them."
+    fi
+    return $bad
+}
+
+if [[ "${1:-}" == "--check" ]]; then
+    echo "Checking dotfiles links in $HOME ..."
+    check_links
+    exit $?
+fi
+
+echo "Installing dotfiles to $HOME ..."
+
+mkdir -p "$HOME/.config/fish"
+mkdir -p "$HOME/.config/ghostty"
+mkdir -p "$HOME/.config/alacritty"
+mkdir -p "$HOME/.config/zed"
+mkdir -p "$HOME/.config/mango/scripts"
+mkdir -p "$HOME/.config/mangobar"
 
 link_file "$DOTS/bash/.bashrc"         "$HOME/.bashrc"
 link_file "$DOTS/fish/config.fish"     "$HOME/.config/fish/config.fish"
