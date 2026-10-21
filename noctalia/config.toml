@@ -95,3 +95,53 @@ enabled = true
 timeout = 330
 action = "lock"
 enabled = true
+
+# Lock screen layout. The same section is kept in the settings store
+# (~/.local/state/noctalia/settings.toml), which the settings UI edits and
+# which takes precedence; this copy is the seed for a fresh machine.
+[lockscreen_widgets]
+enabled = true
+schema_version = 2
+widget_order = [
+    "lockscreen-login-box@eDP-1",
+    "lockscreen-widget-0000000000000001",
+    "lockscreen-widget-hijri",
+]
+
+    [lockscreen_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@eDP-1"]
+    box_height = 196.0
+    box_width = 720.0
+    cx = 683.0
+    cy = 649.0
+    output = "eDP-1"
+    placement_height = 768.0
+    placement_width = 1366.0
+    rotation = 0.0
+    type = "login_box"
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000001]
+    box_height = 112.0
+    box_width = 272.0
+    cx = 683.0
+    cy = 128.0
+    output = "eDP-1"
+    placement_height = 768.0
+    placement_width = 1366.0
+    rotation = 0.0
+    type = "clock"
+
+    [lockscreen_widgets.widget.lockscreen-widget-hijri]
+    box_height = 64.0
+    box_width = 384.0
+    cx = 683.0
+    cy = 256.0
+    output = "eDP-1"
+    placement_height = 768.0
+    placement_width = 1366.0
+    rotation = 0.0
+    type = "hazembook/hijri-date:hijri-date"

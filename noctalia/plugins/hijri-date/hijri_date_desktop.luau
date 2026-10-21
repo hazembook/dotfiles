@@ -41,7 +41,6 @@ function update()
   desktopWidget.render(ui.label({
     text = dateText .. " | " .. (hijriText() or PLACEHOLDER),
     fontFamily = FONT_FAMILY,
-    fontSize = 32,
     fontWeight = "bold",
     textAlign = "center",
   }))
