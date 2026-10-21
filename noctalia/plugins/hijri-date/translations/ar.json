@@ -13,12 +13,25 @@
       "label": "طريقة الحساب"
     },
     "clock_format": {
-      "description": "Whether the clock shows a 12-hour or 24-hour time.",
+      "description": "صيغة عرض الساعة: حسب إعداد النظام، أو 12 ساعة، أو 24 ساعة.",
       "label": "صيغة الساعة",
       "options": {
+        "system": "حسب النظام",
         "12h": "12 ساعة",
         "24h": "24 ساعة"
       }
+    },
+    "date_format": {
+      "description": "صيغة عرض التاريخ: مختصرة (الأربعاء 21 أكتوبر 2026) أو حسب إعداد النظام.",
+      "label": "صيغة التاريخ",
+      "options": {
+        "compact": "مختصرة",
+        "system": "حسب النظام"
+      }
+    },
+    "timezone": {
+      "description": "المنطقة الزمنية للساعة بصيغة IANA (مثال: Africa/Tripoli). اتركها فارغة لاستخدام منطقة النظام.",
+      "label": "المنطقة الزمنية"
     }
   }
 }

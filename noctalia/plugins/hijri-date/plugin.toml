@@ -1,7 +1,7 @@
-plugin_api = 3
+plugin_api = 19
 id = "hazembook/hijri-date"
 name = "Hijri Date"
-version = "1.1.0"
+version = "1.2.0"
 author = "hazembook"
 license = "MIT"
 icon = "clock"
@@ -9,37 +9,43 @@ tags = ["bar", "clock", "time"]
 dependencies = []
 description = "Bar widget: Gregorian date, clock, and Hijri date."
 
+# Plugin-level: the service does the requests, the widget only renders, so
+# the location belongs here (plugin settings are seeded into every entry).
+[[setting]]
+key = "latitude"
+type = "string"
+label_key = "settings.latitude.label"
+description_key = "settings.latitude.description"
+default = "32.8872"
+
+[[setting]]
+key = "longitude"
+type = "string"
+label_key = "settings.longitude.label"
+description_key = "settings.longitude.description"
+default = "13.1913"
+
+[[setting]]
+key = "method"
+type = "string"
+label_key = "settings.method.label"
+description_key = "settings.method.description"
+default = "3"
+
 [[widget]]
 id = "date-clock-hijri"
 entry = "hijri_date_widget.luau"
-
-  [[widget.setting]]
-  key = "latitude"
-  type = "string"
-  label_key = "settings.latitude.label"
-  description_key = "settings.latitude.description"
-  default = "32.8872"
-
-  [[widget.setting]]
-  key = "longitude"
-  type = "string"
-  label_key = "settings.longitude.label"
-  description_key = "settings.longitude.description"
-  default = "13.1913"
-
-  [[widget.setting]]
-  key = "method"
-  type = "string"
-  label_key = "settings.method.label"
-  description_key = "settings.method.description"
-  default = "3"
 
   [[widget.setting]]
   key = "clock_format"
   type = "select"
   label_key = "settings.clock_format.label"
   description_key = "settings.clock_format.description"
-  default = "12h"
+  default = "system"
+
+    [[widget.setting.options]]
+    value = "system"
+    label_key = "settings.clock_format.options.system"
 
     [[widget.setting.options]]
     value = "12h"
@@ -48,3 +54,31 @@ entry = "hijri_date_widget.luau"
     [[widget.setting.options]]
     value = "24h"
     label_key = "settings.clock_format.options.24h"
+
+  [[widget.setting]]
+  key = "date_format"
+  type = "select"
+  label_key = "settings.date_format.label"
+  description_key = "settings.date_format.description"
+  default = "compact"
+
+    [[widget.setting.options]]
+    value = "compact"
+    label_key = "settings.date_format.options.compact"
+
+    [[widget.setting.options]]
+    value = "system"
+    label_key = "settings.date_format.options.system"
+
+  [[widget.setting]]
+  key = "timezone"
+  type = "string"
+  label_key = "settings.timezone.label"
+  description_key = "settings.timezone.description"
+  default = ""
+
+# Background service: owns the aladhan.com requests and publishes the result
+# to the widget through the plugin's shared state.
+[[service]]
+id = "fetcher"
+entry = "hijri_date_service.luau"
