@@ -7,17 +7,18 @@
 }
 
 // Outputs from existing configuration
+// The laptop is on the left, the external monitor to its right.
 output "eDP-1" {
     // off
     transform "normal"
-    position x=1280 y=0
+    position x=0 y=0
 }
 
 output "HDMI-A-1" {
     // off
     mode "1920x1080@59.940"
     transform "normal"
-    position x=1920 y=0
+    position x=1366 y=0
 }
 
 workspace "1" {

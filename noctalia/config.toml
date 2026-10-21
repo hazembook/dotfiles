@@ -35,7 +35,7 @@ radius = 0
 margin_ends = 0
 margin_edge = 0
 margin_opposite_edge = 0
-padding = 0
+padding = 5
 center = ["hazembook/hijri-date:date-clock-hijri"]
 end = [
     "tray",
@@ -49,7 +49,24 @@ end = [
     "network",
     "session"
 ]
-start = ["control-center", "screenshot", "noctalia/screen_recorder:recorder", "workspaces", "active_window"]
+start = [
+    "control-center",
+    "screenshot",
+    "noctalia/screen_recorder:recorder",
+    "workspaces",
+    "cpu",
+    "ram"
+]
+
+# The bar widget instances referenced above. The built-in type is "sysmon";
+# "stat" picks what it shows.
+[widget.cpu]
+type = "sysmon"
+stat = "cpu_usage"
+
+[widget.ram]
+type = "sysmon"
+stat = "ram_pct"
 
 [idle]
 pre_action_fade_seconds = 2.0
