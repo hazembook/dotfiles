@@ -1,0 +1,24 @@
+{
+  "settings": {
+    "latitude": {
+      "description": "Latitude of the location used for prayer times and the Hijri date.",
+      "label": "Latitude"
+    },
+    "longitude": {
+      "description": "Longitude of the location used for prayer times and the Hijri date.",
+      "label": "Longitude"
+    },
+    "method": {
+      "description": "Hijri calculation method (3 = Muslim World League, 4 = Umm al-Qura).",
+      "label": "Calculation method"
+    },
+    "clock_format": {
+      "description": "Whether the clock shows a 12-hour or 24-hour time.",
+      "label": "Clock format",
+      "options": {
+        "12h": "12-hour",
+        "24h": "24-hour"
+      }
+    }
+  }
+}

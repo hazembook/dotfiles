@@ -1,0 +1,24 @@
+{
+  "settings": {
+    "latitude": {
+      "description": "دائرة العرض للموقع المستخدم في أوقات الصلاة والتاريخ الهجري.",
+      "label": "دائرة العرض"
+    },
+    "longitude": {
+      "description": "خط الطول للموقع المستخدم في أوقات الصلاة والتاريخ الهجري.",
+      "label": "خط الطول"
+    },
+    "method": {
+      "description": "طريقة حساب التاريخ الهجري (3 = رابطة العالم الإسلامي، 4 = أم القرى).",
+      "label": "طريقة الحساب"
+    },
+    "clock_format": {
+      "description": "Whether the clock shows a 12-hour or 24-hour time.",
+      "label": "صيغة الساعة",
+      "options": {
+        "12h": "12 ساعة",
+        "24h": "24 ساعة"
+      }
+    }
+  }
+}
