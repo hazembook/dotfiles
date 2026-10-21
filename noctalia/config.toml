@@ -36,7 +36,7 @@ margin_ends = 0
 margin_edge = 0
 margin_opposite_edge = 0
 padding = 5
-center = ["date_clock_hijri_2"]
+center = ["hijri-date"]
 end = [
     "tray",
     "notifications",
@@ -51,8 +51,9 @@ end = [
 ]
 start = [
     "control-center",
+    "launcher",
     "screenshot",
-    "recorder_2",
+    "screen-recorder",
     "workspaces",
     "cpu",
     "ram"
@@ -72,14 +73,14 @@ stat = "ram_pct"
 # (resolveWidgetBarCapsuleSpec in config_types.cpp), so they work from the
 # config file. The running bar widget keeps its old appearance until the
 # instance is recreated (re-add it in the bar editor, or restart the shell).
-[widget.date_clock_hijri_2]
+[widget.hijri-date]
 type = "hazembook/hijri-date:date-clock-hijri"
 capsule = true
 capsule_border = "outline"
 capsule_radius = "auto"
 font_weight = 700
 
-[widget.recorder_2]
+[widget.screen-recorder]
 type = "noctalia/screen_recorder:recorder"
 
 [idle]
