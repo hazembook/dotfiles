@@ -253,7 +253,7 @@ alias tonynvim 'NVIM_APPNAME=tonynvim nvim'
 alias lg 'lazygit'
 alias gcom 'git add . && git commit -m'
 alias lazyg 'git add . && git commit -m "$argv" && git push'
-alias push 'git remote | xargs -I R git push R main'
+alias push 'git remote | xargs -I R git push R main --follow-tags'
 alias pushall 'git remote | xargs -I R git push R --all'
 
 ## Process Management

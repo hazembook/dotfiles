@@ -290,7 +290,7 @@ lazyg() {
     git add . && git commit -m "$1" && git push
 }
 
-alias push='git remote | xargs -I R git push R main'
+alias push='git remote | xargs -I R git push R main --follow-tags'
 alias pushall='git remote | xargs -I R git push R --all'
 
 ## Media & Downloads (yt-dlp)
