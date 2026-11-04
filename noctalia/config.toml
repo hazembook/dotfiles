@@ -36,7 +36,7 @@ margin_ends = 0
 margin_edge = 0
 margin_opposite_edge = 0
 padding = 5
-center = ["hijri-date"]
+center = ["hijri-date", "clock"]
 end = [
     "tray",
     "notifications",
@@ -69,15 +69,20 @@ stat = "cpu_usage"
 type = "sysmon"
 stat = "ram_pct"
 
-# Per-widget appearance. These are read from the widget's own settings
-# (resolveWidgetBarCapsuleSpec in config_types.cpp), so they work from the
-# config file. The running bar widget keeps its old appearance until the
-# instance is recreated (re-add it in the bar editor, or restart the shell).
+# The bar clock is the shell's own clock widget. Left click opens the Hijri
+# calendar panel; right click keeps the shell's built-in calendar.
+[widget.clock]
+type = "clock"
+tooltip_format = "%A %e %B %Y"
+
+[widget.clock.actions]
+left = "panel-toggle hazembook/hijri-date:calendar"
+right = "panel-toggle control-center calendar"
+
+# The date label next to the clock shows whichever calendar is "main". Left
+# click flips it; right click opens the calendar panel.
 [widget.hijri-date]
 type = "hazembook/hijri-date:date-clock-hijri"
-capsule = true
-capsule_border = "outline"
-capsule_radius = "auto"
 font_weight = 700
 
 [widget.screen-recorder]

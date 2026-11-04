@@ -1,13 +1,13 @@
 plugin_api = 19
 id = "hazembook/hijri-date"
 name = "Hijri Date"
-version = "1.3.0"
+version = "1.5.0"
 author = "hazembook"
 license = "MIT"
 icon = "clock"
-tags = ["bar", "clock", "time"]
+tags = ["bar", "clock", "time", "calendar"]
 dependencies = []
-description = "Bar widget: the Hijri date, switching at Maghrib."
+description = "Bar date label and a two-calendar month panel, switching at Maghrib."
 
 # Plugin-level: the service does the requests, so the location lives here
 # (plugin settings are seeded into every entry).
@@ -40,6 +40,18 @@ entry = "hijri_date_widget.luau"
 [[desktop_widget]]
 id = "hijri-date"
 entry = "hijri_date_desktop.luau"
+
+# Calendar panel: a month grid that can be anchored to either calendar.
+# Opened by the bar date label, the clock, or:
+#   noctalia msg panel-toggle hazembook/hijri-date:calendar
+[[panel]]
+id = "calendar"
+entry = "hijri_date_panel.luau"
+width = 400
+height = 500
+placement = "attached"
+position = "center"
+open_near_click = false
 
 # Background service: owns the aladhan.com requests and publishes the date
 # that is currently valid to the widget.

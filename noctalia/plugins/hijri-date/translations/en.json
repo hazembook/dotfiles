@@ -1,4 +1,15 @@
 {
+  "panel": {
+    "error": "Could not load the Hijri calendar",
+    "gregorian": "Gregorian",
+    "hijri": "Hijri",
+    "loading": "Loading…",
+    "next": "Next month",
+    "previous": "Previous month",
+    "retry": "Retry",
+    "select_day": "Select a day to see its Hijri date",
+    "today": "Today"
+  },
   "settings": {
     "latitude": {
       "description": "Latitude of the location used for prayer times and the Hijri date.",
