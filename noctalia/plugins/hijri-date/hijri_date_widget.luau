@@ -11,9 +11,92 @@
 -- (hijri_date_service.luau); the widget only renders what it publishes.
 -- The Gregorian date comes from the shell's own [shell].date_format.
 
+local i18n = require("./i18n.luau")
+
 local MAIN_KEY = "hijri.calendar.main"
 local FONT_FAMILY = "Amiri"
-local PLACEHOLDER = "جاري التحميل..."
+
+local WEEKDAY_KEYS = { "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday" }
+local WEEKDAY_SHORT_EN = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" }
+local WEEKDAY_LONG_EN = {
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+}
+local MONTHS_EN = {
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+}
+
+local function tr(key, fallback)
+  return i18n.tr(key, fallback)
+end
+
+-- The shell's own language setting also decides the reading direction.
+local function isRtl()
+  return i18n.isRtl()
+end
+
+local function escapePattern(text)
+  return (text:gsub("(%W)", "%%%1"))
+end
+
+-- `noctalia.formatTime()` (strftime) is not localized by the shell language,
+-- so substitute the English names it prints with the plugin catalog's names.
+-- Sorted longest-first so "March" is replaced before "Mar".
+local function localizeDate(text)
+  local replacements = {}
+  for index = 1, 7 do
+    local key = WEEKDAY_KEYS[index]
+    replacements[#replacements + 1] = {
+      WEEKDAY_LONG_EN[index],
+      tr("weekday." .. key .. "_full", WEEKDAY_LONG_EN[index]),
+    }
+    replacements[#replacements + 1] = {
+      WEEKDAY_SHORT_EN[index],
+      tr("weekday." .. key, WEEKDAY_SHORT_EN[index]),
+    }
+  end
+  for month = 1, 12 do
+    replacements[#replacements + 1] = {
+      MONTHS_EN[month],
+      tr("month." .. tostring(month), MONTHS_EN[month]),
+    }
+  end
+  table.sort(replacements, function(a, b)
+    return #a[1] > #b[1]
+  end)
+
+  for _, pair in ipairs(replacements) do
+    if pair[2] ~= pair[1] then
+      text = text:gsub(escapePattern(pair[1]), pair[2])
+    end
+  end
+  -- `%e` pads the day with a leading space; collapse that double space.
+  return (text:gsub("%s+", " "))
+end
+
+local function gregorianText()
+  return localizeDate(noctalia.formatTime(noctalia.dateFormat()))
+end
+
+local function placeholder()
+  return tr("panel.loading", "Loading…")
+end
 
 local function stateDir()
   local base = noctalia.getenv("XDG_STATE_HOME")
@@ -43,12 +126,34 @@ end
 
 local main = readMain()
 
-local function render()
-  if main == "hijri" then
-    barWidget.setText(noctalia.state.get("hijri.display") or PLACEHOLDER)
-  else
-    barWidget.setText(noctalia.formatTime(noctalia.dateFormat()))
+-- The clock's own tooltip only formats a Gregorian strftime string, so the
+-- both-calendar tooltip lives on this label instead: one row for each date.
+local lastTooltipSignature
+local function updateTooltip()
+  local greg = gregorianText()
+  local hijri = noctalia.state.get("hijri.display")
+  local rows = {
+    { key = tr("tooltip.gregorian", "Gregorian"), value = greg },
+  }
+  if type(hijri) == "string" and hijri ~= "" then
+    rows[#rows + 1] = { key = tr("tooltip.hijri", "Hijri"), value = hijri }
   end
+
+  local signature = greg .. "\n" .. tostring(hijri)
+  if signature ~= lastTooltipSignature then
+    barWidget.setTooltip(rows)
+    lastTooltipSignature = signature
+  end
+end
+
+local function render()
+  i18n.refresh()
+  if main == "hijri" then
+    barWidget.setText(noctalia.state.get("hijri.display") or placeholder())
+  else
+    barWidget.setText(gregorianText())
+  end
+  updateTooltip()
 end
 
 local function setMain(value)
@@ -104,8 +209,8 @@ function onIpc(event, payload)
     noctalia.notify(
       "Hijri Date",
       "main: " .. main
-        .. "\ngregorian: " .. noctalia.formatTime(noctalia.dateFormat())
-        .. "\nhijri: " .. tostring(noctalia.state.get("hijri.display") or PLACEHOLDER)
+        .. "\ngregorian: " .. gregorianText()
+        .. "\nhijri: " .. tostring(noctalia.state.get("hijri.display") or placeholder())
         .. "\nmaghrib: " .. tostring(noctalia.state.get("hijri.maghrib"))
         .. "\ntimezone: " .. tostring(noctalia.state.get("hijri.timezone"))
         .. "\nfetched_at: " .. tostring(noctalia.state.get("hijri.fetched_at"))

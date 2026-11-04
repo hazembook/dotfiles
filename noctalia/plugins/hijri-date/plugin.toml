@@ -1,7 +1,7 @@
-plugin_api = 19
+plugin_api = 26
 id = "hazembook/hijri-date"
 name = "Hijri Date"
-version = "1.5.0"
+version = "1.6.0"
 author = "hazembook"
 license = "MIT"
 icon = "clock"
@@ -31,6 +31,24 @@ type = "string"
 label_key = "settings.method.label"
 description_key = "settings.method.description"
 default = "3"
+
+# First day of the week in the calendar grid. Friday is the default because
+# the Hijri week starts on Friday.
+[[setting]]
+key = "week_start"
+type = "select"
+label_key = "settings.week_start.label"
+description_key = "settings.week_start.description"
+default = "friday"
+options = [
+  { value = "friday", label_key = "settings.week_start.friday" },
+  { value = "saturday", label_key = "settings.week_start.saturday" },
+  { value = "sunday", label_key = "settings.week_start.sunday" },
+  { value = "monday", label_key = "settings.week_start.monday" },
+  { value = "tuesday", label_key = "settings.week_start.tuesday" },
+  { value = "wednesday", label_key = "settings.week_start.wednesday" },
+  { value = "thursday", label_key = "settings.week_start.thursday" },
+]
 
 [[widget]]
 id = "date-clock-hijri"

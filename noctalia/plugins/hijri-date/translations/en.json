@@ -1,5 +1,20 @@
 {
+  "month": {
+    "1": "January",
+    "2": "February",
+    "3": "March",
+    "4": "April",
+    "5": "May",
+    "6": "June",
+    "7": "July",
+    "8": "August",
+    "9": "September",
+    "10": "October",
+    "11": "November",
+    "12": "December"
+  },
   "panel": {
+    "dir": "ltr",
     "error": "Could not load the Hijri calendar",
     "gregorian": "Gregorian",
     "hijri": "Hijri",
@@ -22,6 +37,37 @@
     "method": {
       "description": "Hijri calculation method (3 = Muslim World League, 4 = Umm al-Qura).",
       "label": "Calculation method"
+    },
+    "week_start": {
+      "description": "First day of the week shown in the calendar grid.",
+      "friday": "Friday",
+      "label": "Week starts on",
+      "monday": "Monday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "thursday": "Thursday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday"
     }
+  },
+  "tooltip": {
+    "gregorian": "Gregorian",
+    "hijri": "Hijri"
+  },
+  "weekday": {
+    "friday": "Fri",
+    "friday_full": "Friday",
+    "monday": "Mon",
+    "monday_full": "Monday",
+    "saturday": "Sat",
+    "saturday_full": "Saturday",
+    "sunday": "Sun",
+    "sunday_full": "Sunday",
+    "thursday": "Thu",
+    "thursday_full": "Thursday",
+    "tuesday": "Tue",
+    "tuesday_full": "Tuesday",
+    "wednesday": "Wed",
+    "wednesday_full": "Wednesday"
   }
 }

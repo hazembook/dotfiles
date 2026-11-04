@@ -70,10 +70,11 @@ type = "sysmon"
 stat = "ram_pct"
 
 # The bar clock is the shell's own clock widget. Left click opens the Hijri
-# calendar panel; right click keeps the shell's built-in calendar.
+# calendar panel; right click keeps the shell's built-in calendar. The clock's
+# tooltip is a strftime string and cannot include the Hijri date, so the
+# both-calendar tooltip lives on the plugin's date label instead.
 [widget.clock]
 type = "clock"
-tooltip_format = "%A %e %B %Y"
 
 [widget.clock.actions]
 left = "panel-toggle hazembook/hijri-date:calendar"

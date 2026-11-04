@@ -7,8 +7,9 @@
 -- real 29/30-day Hijri month with the Gregorian day under each number, so the
 -- grid itself follows the selected main calendar.
 --
--- Both directions are cached in the plugin's shared state for 30 days, so
--- paging back and forth and reopening the panel do not hit the network again.
+-- Both directions are cached in memory and persistently on disk for 30 days,
+-- so paging back and forth, reopening the panel and restarting the shell do
+-- not hit the network again.
 --
 -- The main calendar is shared with the bar widget through the state key
 -- `hijri.calendar.main` and persisted to a small file so it survives a shell
@@ -19,13 +20,15 @@
 --   onOpen(context)  reset the view to today and render
 --   onClose()        stop rendering after an in-flight request
 --
--- The locale's first day of week is not exposed to plugins, so the grid starts
--- on Sunday (the shell's calendar uses the locale's first day; en_US is Sunday).
+-- The week starts on Friday by default (the Hijri week); the `week_start`
+-- setting changes it.
+
+local i18n = require("./i18n.luau")
 
 local MAIN_KEY = "hijri.calendar.main"
-local GCACHE_KEY = "hijri.calendar.gcache.v2"
-local HCACHE_KEY = "hijri.calendar.hcache.v2"
-local CACHE_VERSION = 2
+local GCACHE_KEY = "hijri.calendar.gcache.v3"
+local HCACHE_KEY = "hijri.calendar.hcache.v3"
+local CACHE_VERSION = 3
 local CACHE_TTL_SECONDS = 30 * 24 * 60 * 60
 
 local MDAYS = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
@@ -43,12 +46,56 @@ local HIJRI_MONTHS = {
   "ذو القَعْدة",
   "ذو الحِجّة",
 }
-local WEEKDAYS = {} -- Sunday-first abbreviations, matching the shell calendar
+local HIJRI_MONTHS_EN = {
+  "Muharram",
+  "Safar",
+  "Rabi' al-Awwal",
+  "Rabi' al-Thani",
+  "Jumada al-Ula",
+  "Jumada al-Akhirah",
+  "Rajab",
+  "Sha'ban",
+  "Ramadan",
+  "Shawwal",
+  "Dhu al-Qi'dah",
+  "Dhu al-Hijjah",
+}
 
-for index = 0, 6 do
-  -- 2024-01-07 was a Sunday.
-  WEEKDAYS[index] = os.date("%a", os.time({ year = 2024, month = 1, day = 7 + index }))
-end
+local GREGORIAN_MONTHS_EN = {
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+}
+
+local WEEKDAY_KEYS = { "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday" }
+local WEEKDAY_SHORT_EN = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" }
+local WEEKDAY_LONG_EN = {
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+}
+local WEEK_START_INDEX = {
+  sunday = 0,
+  monday = 1,
+  tuesday = 2,
+  wednesday = 3,
+  thursday = 4,
+  friday = 5,
+  saturday = 6,
+}
 
 local function stateDir()
   local base = noctalia.getenv("XDG_STATE_HOME")
@@ -59,6 +106,22 @@ local function stateDir()
 end
 
 local MAIN_FILE = stateDir() .. "/hijri-date-main"
+
+-- Month pages are immutable, so keep them on disk as well as in memory. A
+-- shell restart then reuses every month the user has already visited.
+local function cacheDir()
+  local ok, dir = pcall(noctalia.pluginDataDir)
+  if ok and type(dir) == "string" and dir ~= "" then
+    return dir
+  end
+  local fallback = stateDir() .. "/hijri-date"
+  noctalia.mkdirAll(fallback)
+  return fallback
+end
+
+local CACHE_DIR = cacheDir()
+local GCACHE_FILE = CACHE_DIR .. "/gcache.v3.json"
+local HCACHE_FILE = CACHE_DIR .. "/hcache.v3.json"
 
 local cacheG
 local cacheH
@@ -76,13 +139,47 @@ local ensureGView
 local ensureHView
 local render
 local afterData
+local applyMain
+
+local function trRaw(key, fallback)
+  return i18n.tr(key, fallback)
+end
 
 local function tr(key, fallback)
-  local text = noctalia.tr("panel." .. key)
-  if text == nil or text == "" or text == "panel." .. key then
-    return fallback
+  return i18n.tr("panel." .. key, fallback)
+end
+
+-- The shell's own language setting drives both the catalog and the UI
+-- direction, and it is read by the i18n module itself.
+local function isRtl()
+  return i18n.isRtl()
+end
+
+local function weekStart()
+  local value = tostring(noctalia.getConfig("week_start") or "friday")
+  return WEEK_START_INDEX[value] or WEEK_START_INDEX.friday
+end
+
+local function weekdayIndexFromWday(wday)
+  -- os.date("*t").wday is 1..7 with Sunday = 1; use 0..6 with Sunday = 0.
+  return (wday - 1) % 7
+end
+
+local function weekdayName(index, full)
+  local key = "weekday." .. WEEKDAY_KEYS[index + 1] .. (full and "_full" or "")
+  local fallback = (full and WEEKDAY_LONG_EN or WEEKDAY_SHORT_EN)[index + 1]
+  return trRaw(key, fallback)
+end
+
+local function gregorianMonthName(month)
+  return trRaw("month." .. tostring(month), GREGORIAN_MONTHS_EN[month] or tostring(month))
+end
+
+local function hijriMonthName(month, arabicName, englishName)
+  if isRtl() then
+    return (arabicName ~= nil and arabicName ~= "") and arabicName or HIJRI_MONTHS[month] or ""
   end
-  return text
+  return (englishName ~= nil and englishName ~= "") and englishName or HIJRI_MONTHS_EN[month] or arabicName or ""
 end
 
 local function daysInMonth(year, month)
@@ -115,7 +212,11 @@ local function todayParts()
 end
 
 local function gregorianLong(year, month, day)
-  return os.date("%A %d %B %Y", os.time({ year = year, month = month, day = day }))
+  local wday = os.date("*t", os.time({ year = year, month = month, day = day })).wday
+  return weekdayName(weekdayIndexFromWday(wday), true)
+    .. " " .. tostring(day)
+    .. " " .. gregorianMonthName(month)
+    .. " " .. tostring(year)
 end
 
 local function readMain()
@@ -139,36 +240,76 @@ local function persistMain(value)
   noctalia.writeFile(MAIN_FILE, value)
 end
 
+local function decodeCacheFile(path)
+  if not noctalia.fileExists(path) then
+    return nil
+  end
+  local raw = noctalia.readFile(path)
+  if type(raw) ~= "string" or raw == "" then
+    return nil
+  end
+  local ok, decoded = pcall(noctalia.json.decode, raw)
+  if not ok or type(decoded) ~= "table" or decoded.version ~= CACHE_VERSION or type(decoded.months) ~= "table" then
+    return nil
+  end
+  return decoded
+end
+
+local function loadCache(key, path)
+  local stored = noctalia.state.get(key)
+  if type(stored) == "table" and stored.version == CACHE_VERSION and type(stored.months) == "table" then
+    return stored.months
+  end
+  local decoded = decodeCacheFile(path)
+  if decoded ~= nil then
+    noctalia.state.set(key, decoded)
+    return decoded.months
+  end
+  return {}
+end
+
+local function pruneMonths(months)
+  local now = os.time()
+  for key, entry in pairs(months) do
+    if type(entry) ~= "table"
+      or type(entry.fetchedAt) ~= "number"
+      or now - entry.fetchedAt >= CACHE_TTL_SECONDS then
+      months[key] = nil
+    end
+  end
+  return months
+end
+
+local function saveCache(key, path, months)
+  local cleaned = pruneMonths(months)
+  local payload = { version = CACHE_VERSION, months = cleaned }
+  noctalia.state.set(key, payload)
+  local ok, encoded = pcall(noctalia.json.encode, payload)
+  if ok and type(encoded) == "string" then
+    noctalia.writeFile(path, encoded)
+  end
+end
+
 local function loadGCache()
   if cacheG ~= nil then
     return
   end
-  local stored = noctalia.state.get(GCACHE_KEY)
-  if type(stored) == "table" and stored.version == CACHE_VERSION and type(stored.months) == "table" then
-    cacheG = stored.months
-  else
-    cacheG = {}
-  end
+  cacheG = loadCache(GCACHE_KEY, GCACHE_FILE)
 end
 
 local function saveGCache()
-  noctalia.state.set(GCACHE_KEY, { version = CACHE_VERSION, months = cacheG })
+  saveCache(GCACHE_KEY, GCACHE_FILE, cacheG)
 end
 
 local function loadHCache()
   if cacheH ~= nil then
     return
   end
-  local stored = noctalia.state.get(HCACHE_KEY)
-  if type(stored) == "table" and stored.version == CACHE_VERSION and type(stored.months) == "table" then
-    cacheH = stored.months
-  else
-    cacheH = {}
-  end
+  cacheH = loadCache(HCACHE_KEY, HCACHE_FILE)
 end
 
 local function saveHCache()
-  noctalia.state.set(HCACHE_KEY, { version = CACHE_VERSION, months = cacheH })
+  saveCache(HCACHE_KEY, HCACHE_FILE, cacheH)
 end
 
 local function cachedG(year, month)
@@ -217,15 +358,29 @@ local function hijriForGDate(g)
   if day == nil or type(day.hy) ~= "number" or type(day.hm) ~= "number" or type(day.hd) ~= "number" then
     return nil
   end
-  return { y = day.hy, m = day.hm, d = day.hd, w = day.hw or "", name = day.hn or "" }
+  return {
+    y = day.hy,
+    m = day.hm,
+    d = day.hd,
+    w = day.hw or "",
+    name = day.hn or "",
+    name_en = day.hn_en or "",
+  }
 end
 
-local function hijriFull(h)
+local function hijriFull(h, g)
   if h == nil then
     return nil
   end
-  local weekday = (h.w ~= nil and h.w ~= "") and h.w .. " " or ""
-  return weekday .. tostring(h.d) .. " " .. tostring(h.name) .. " " .. tostring(h.y)
+  local weekday = ""
+  if g ~= nil then
+    local wday = os.date("*t", os.time({ year = g.y, month = g.m, day = g.d })).wday
+    weekday = weekdayName(weekdayIndexFromWday(wday), true) .. " "
+  elseif h.w ~= nil and h.w ~= "" then
+    weekday = h.w .. " "
+  end
+  local monthName = hijriMonthName(h.m, h.name, h.name_en)
+  return weekday .. tostring(h.d) .. " " .. monthName .. " " .. tostring(h.y)
 end
 
 local function hijriRangeLabel(entry)
@@ -238,8 +393,8 @@ local function hijriRangeLabel(entry)
   if type(first) ~= "table" or type(last) ~= "table" then
     return nil
   end
-  local firstName = first.hn or ""
-  local lastName = last.hn or ""
+  local firstName = hijriMonthName(first.hm, first.hn, first.hn_en)
+  local lastName = hijriMonthName(last.hm, last.hn, last.hn_en)
   if first.hm == last.hm and first.hy == last.hy then
     return firstName .. " " .. tostring(first.hy)
   elseif first.hy == last.hy then
@@ -262,8 +417,8 @@ local function gregorianRangeLabel(entry)
     or type(last.gy) ~= "number" or type(last.gm) ~= "number" or type(last.gd) ~= "number" then
     return nil
   end
-  local firstName = os.date("%B", os.time({ year = first.gy, month = first.gm, day = first.gd }))
-  local lastName = os.date("%B", os.time({ year = last.gy, month = last.gm, day = last.gd }))
+  local firstName = gregorianMonthName(first.gm)
+  local lastName = gregorianMonthName(last.gm)
   if first.gy == last.gy and first.gm == last.gm then
     return string.format("%d–%d %s %d", first.gd, last.gd, firstName, first.gy)
   elseif first.gy == last.gy then
@@ -340,6 +495,7 @@ local function fetchG(year, month)
             hd = tonumber(hijri.day) or 0,
             hw = (hijri.weekday and hijri.weekday.ar) or "",
             hn = (hijri.month and hijri.month.ar) or "",
+            hn_en = (hijri.month and hijri.month.en) or "",
           }
         end
       end
@@ -395,6 +551,7 @@ local function fetchH(year, month)
           hd = tonumber(hijri.day) or 0,
           hw = (hijri.weekday and hijri.weekday.ar) or "",
           hn = (hijri.month and hijri.month.ar) or "",
+          hn_en = (hijri.month and hijri.month.en) or "",
           gy = tonumber(gregorian.year) or 0,
           gm = (gregorian.month and tonumber(gregorian.month.number)) or 0,
           gd = tonumber(gregorian.day) or 0,
@@ -471,7 +628,7 @@ local function buildGregorianCells(year, month)
   local nextYear, nextMonth = shiftMonthParts(year, month, 1)
   local prevDim = daysInMonth(prevYear, prevMonth)
   local firstWeekday = os.date("*t", os.time({ year = year, month = month, day = 1 })).wday
-  local leading = firstWeekday - 1 -- Sunday-first
+  local leading = (weekdayIndexFromWday(firstWeekday) - weekStart() + 7) % 7
   local cells = {}
 
   for row = 0, 5 do
@@ -497,6 +654,7 @@ local function buildGregorianCells(year, month)
         hd = hijri and hijri.d or nil,
         hw = hijri and hijri.w or nil,
         hn = hijri and hijri.name or nil,
+        hn_en = hijri and hijri.name_en or nil,
       })
     end
   end
@@ -515,7 +673,7 @@ local function buildHijriCells(year, month)
   local days = entry.days
   local first = days[1]
   local firstWeekday = os.date("*t", os.time({ year = first.gy, month = first.gm, day = first.gd })).wday
-  local leading = firstWeekday - 1 -- Sunday-first
+  local leading = (weekdayIndexFromWday(firstWeekday) - weekStart() + 7) % 7
   local prevYear, prevMonth = shiftMonthParts(year, month, -1)
   local nextYear, nextMonth = shiftMonthParts(year, month, 1)
   local prevEntry = cachedH(prevYear, prevMonth)
@@ -557,6 +715,7 @@ local function buildHijriCells(year, month)
           hd = day.hd,
           hw = day.hw,
           hn = day.hn,
+          hn_en = day.hn_en,
         })
       end
     end
@@ -567,22 +726,48 @@ end
 
 local function buildSwitchRow(isHijri)
   local function mainLabel(text, active)
-    local props = {
+    return ui.label({
       text = text,
       fontSize = 11,
+      fontWeight = "medium",
       maxLines = 1,
       color = active and "primary" or "on_surface_variant",
-    }
-    if active then
-      props.fontWeight = "bold"
-    end
-    return ui.label(props)
+    })
   end
 
-  return ui.row({ align = "center", justify = "center", gap = 8 }, {
-    mainLabel(tr("gregorian", "Gregorian"), not isHijri),
-    ui.toggle({ checked = isHijri, onChange = "onToggleMain" }),
-    mainLabel(tr("hijri", "Hijri"), isHijri),
+  local function option(value, text, active)
+    return ui.column({
+      flexGrow = 1,
+      height = 24,
+      align = "center",
+      justify = "center",
+      radius = 12,
+      fill = active and "primary/0.18" or nil,
+      border = active and "primary/0.5" or nil,
+      borderWidth = active and 1 or nil,
+      onClick = function()
+        if not active then
+          applyMain(value, true)
+        end
+      end,
+    }, {
+      mainLabel(text, active),
+    })
+  end
+
+  -- A two-part segmented control instead of the native toggle: both labels
+  -- share one font and the capsule border is identical in either state.
+  return ui.row({
+    width = 190,
+    height = 28,
+    padding = 2,
+    gap = 2,
+    radius = 14,
+    border = "outline_variant",
+    borderWidth = 1,
+  }, {
+    option("gregorian", tr("gregorian", "Gregorian"), not isHijri),
+    option("hijri", tr("hijri", "Hijri"), isHijri),
   })
 end
 
@@ -615,22 +800,20 @@ local function makeCell(cell, todayG, isHijri)
     weight = "bold"
   elseif isSelected then
     fill = "surface_variant/0.5"
+    border = "primary/0.4"
+    borderWidth = 1
     primaryColor = "on_surface"
     weight = "bold"
   end
 
   local primaryText
   local secondaryText
-  local primaryFont
-  local secondaryFont
   if isHijri then
     primaryText = cell.hd ~= nil and tostring(cell.hd) or ""
     secondaryText = tostring(cell.gd)
-    primaryFont = "Amiri"
   else
     primaryText = tostring(cell.gd)
     secondaryText = cell.hd ~= nil and tostring(cell.hd) or ""
-    secondaryFont = "Amiri"
   end
 
   local primaryProps = {
@@ -640,9 +823,6 @@ local function makeCell(cell, todayG, isHijri)
     color = primaryColor,
     maxLines = 1,
   }
-  if primaryFont ~= nil then
-    primaryProps.fontFamily = primaryFont
-  end
 
   local secondaryProps = {
     text = secondaryText,
@@ -651,9 +831,6 @@ local function makeCell(cell, todayG, isHijri)
     color = secondaryColor,
     maxLines = 1,
   }
-  if secondaryFont ~= nil then
-    secondaryProps.fontFamily = secondaryFont
-  end
 
   local props = {
     key = string.format("d-%04d-%02d-%02d", cell.gy, cell.gm, cell.gd),
@@ -718,6 +895,7 @@ local function renderLoading()
 end
 
 render = function()
+  i18n.refresh()
   if viewYear == nil or viewMonth == nil then
     renderLoading()
     return
@@ -739,19 +917,17 @@ render = function()
   local todayG = { y = todayYear, m = todayMonth, d = todayDay }
 
   local titleText
-  local titleFont
   if isHijri then
-    local monthName = HIJRI_MONTHS[viewMonth] or ""
+    local apiName = nil
+    local apiNameEn = nil
     if entryH ~= nil and type(entryH.days) == "table" and entryH.days[1] ~= nil then
-      local apiName = entryH.days[1].hn
-      if apiName ~= nil and apiName ~= "" then
-        monthName = apiName
-      end
+      apiName = entryH.days[1].hn
+      apiNameEn = entryH.days[1].hn_en
     end
+    local monthName = hijriMonthName(viewMonth, apiName, apiNameEn)
     titleText = monthName .. " " .. tostring(viewYear)
-    titleFont = "Amiri"
   else
-    titleText = os.date("%B %Y", os.time({ year = viewYear, month = viewMonth, day = 1 }))
+    titleText = gregorianMonthName(viewMonth) .. " " .. tostring(viewYear)
   end
 
   local subtitleText
@@ -770,9 +946,6 @@ render = function()
     fontWeight = "bold",
     maxLines = 1,
   }
-  if titleFont ~= nil then
-    titleProps.fontFamily = titleFont
-  end
 
   local subtitleProps = {
     text = subtitleText,
@@ -781,13 +954,16 @@ render = function()
     maxLines = 1,
     maxWidth = 290,
   }
-  if not isHijri then
-    subtitleProps.fontFamily = "Amiri"
-  end
+
+  -- The header row is mirrored by the shell in RTL, so the previous-month
+  -- button sits on the right and must point right, and vice versa.
+  local rtl = isRtl()
+  local previousGlyph = rtl and "chevron-right" or "chevron-left"
+  local nextGlyph = rtl and "chevron-left" or "chevron-right"
 
   local header = ui.row({ align = "center", gap = 6 }, {
     ui.button({
-      glyph = "chevron-left",
+      glyph = previousGlyph,
       variant = "ghost",
       width = 30,
       height = 30,
@@ -810,7 +986,7 @@ render = function()
       ui.label(subtitleProps),
     }),
     ui.button({
-      glyph = "chevron-right",
+      glyph = nextGlyph,
       variant = "ghost",
       width = 30,
       height = 30,
@@ -831,9 +1007,15 @@ render = function()
   })
 
   local weekdayCells = {}
+  local start = weekStart()
   for index = 0, 6 do
     table.insert(weekdayCells, ui.column({ flexGrow = 1, align = "center" }, {
-      ui.label({ text = WEEKDAYS[index], fontSize = 11, color = "on_surface_variant", maxLines = 1 }),
+      ui.label({
+        text = weekdayName((start + index) % 7, false),
+        fontSize = 11,
+        color = "on_surface_variant",
+        maxLines = 1,
+      }),
     }))
   end
   local weekdayRow = ui.row({ gap = 2 }, weekdayCells)
@@ -871,7 +1053,6 @@ render = function()
 
   local footerPrimary
   local footerSecondary
-  local footerFont
   if selected == nil or selected.g == nil then
     footerPrimary = tr("select_day", "Select a day to see its Hijri date")
     footerSecondary = ""
@@ -879,12 +1060,11 @@ render = function()
     local g = selected.g
     local hijri = hijriForGDate(g) or selected.h
     local gregText = gregorianLong(g.y, g.m, g.d)
-    local hijriText = hijriFull(hijri)
+    local hijriText = hijriFull(hijri, g)
     if isHijri then
       footerPrimary = hijriText or (loadFailed and tr("error", "Could not load the Hijri calendar")
         or tr("loading", "Loading…"))
       footerSecondary = gregText
-      footerFont = "Amiri"
     else
       footerPrimary = gregText
       footerSecondary = hijriText or (loadFailed and tr("error", "Could not load the Hijri calendar")
@@ -899,9 +1079,6 @@ render = function()
     maxLines = 1,
     maxWidth = 300,
   }
-  if footerFont ~= nil then
-    footerPrimaryProps.fontFamily = footerFont
-  end
 
   local footerChildren = {
     ui.column({ flexGrow = 1, gap = 0 }, {
@@ -912,7 +1089,6 @@ render = function()
         color = "on_surface_variant",
         maxLines = 1,
         maxWidth = 300,
-        fontFamily = (not isHijri) and "Amiri" or nil,
       }),
     }),
   }
@@ -983,7 +1159,14 @@ end
 selectCell = function(cell)
   local hijri = nil
   if cell.hd ~= nil then
-    hijri = { y = cell.hy, m = cell.hm, d = cell.hd, w = cell.hw, name = cell.hn }
+    hijri = {
+      y = cell.hy,
+      m = cell.hm,
+      d = cell.hd,
+      w = cell.hw,
+      name = cell.hn,
+      name_en = cell.hn_en,
+    }
   else
     hijri = hijriForGDate({ y = cell.gy, m = cell.gm, d = cell.gd })
   end
@@ -1027,7 +1210,7 @@ local function anchorGregorian()
   return { y = year, m = month, d = day }
 end
 
-local function applyMain(nextMain, persist)
+applyMain = function(nextMain, persist)
   if nextMain == main then
     return
   end
@@ -1058,11 +1241,6 @@ local function applyMain(nextMain, persist)
     ensureGView(viewYear, viewMonth)
   end
   render()
-end
-
-function onToggleMain(value)
-  local hijri = value == true or value == "true"
-  applyMain(hijri and "hijri" or "gregorian", true)
 end
 
 function onOpen(_context)
