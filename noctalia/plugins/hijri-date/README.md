@@ -33,8 +33,9 @@ setting selects what the capsule shows:
 | `clock_both` | Clock + both dates |
 
 The clock is always **bold** and the dates use the regular weight. When both
-dates are shown, the clock sits between them: **Gregorian | clock | Hijri**.
-The Gregorian date uses the shell's own format (`noctalia.dateFormat()` /
+dates are shown, the clock sits between them with thin separators for
+readability: **Gregorian │ clock │ Hijri**. The Gregorian date uses the
+shell's own format (`noctalia.dateFormat()` /
 `[shell].date_format`), e.g. `Tuesday 3 November 2026`. The Hijri date comes
 from the service, e.g. `Tuesday 23 Jumada al-Ula 1448` in English or
 `الثلاثاء 23 جُمادى الأولى 1448` in Arabic.
@@ -50,8 +51,9 @@ shell restart.
 
 **Right click** opens the plugin's calendar panel.
 
-Hovering the capsule shows a two-row tooltip with **Gregorian** and **Hijri**
-dates.
+The tooltip is only used for dates that are not already visible: with both
+dates on the bar it is cleared, with one date it shows the other one, and with
+the clock alone it shows both.
 
 ### Bar widget
 
@@ -67,6 +69,7 @@ display = "clock_both"
 
 [plugin_settings."hazembook/hijri-date"]
 hijri_language = "arabic"
+week_start = "friday"
 ```
 
 Drop the `display` key for the default `main` mode, or pick any mode from the
@@ -74,11 +77,11 @@ table above.
 
 ### Calendar panel
 
-The panel has a **Gregorian / Hijri** segmented switch above the month title.
-Gregorian stays on the left and Hijri on the right in both LTR and RTL
-layouts. Both segments use the same label font and the capsule border stays
-consistent in either state. The switch changes the same main-calendar setting
-as the bar widget, and the grid re-lays out for the selected calendar:
+Two separate pills sit above the month title: **Gregorian** on the far left
+and **Hijri** on the far right, in both LTR and RTL layouts. They are not
+joined into one shared capsule, so the active calendar reads as one
+independent button. Choosing one changes the same main-calendar setting as
+the bar widget, and the grid re-lays out for the selected calendar:
 
 - **Gregorian mode** fetches a Gregorian month from `gToHCalendar` and prints
   the Hijri day under each Gregorian day number.

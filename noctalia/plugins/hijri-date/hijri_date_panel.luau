@@ -756,14 +756,14 @@ local function buildSwitchRow(isHijri)
 
   local function option(value, text, active)
     return ui.column({
-      flexGrow = 1,
-      height = 24,
+      width = 104,
+      height = 28,
       align = "center",
       justify = "center",
-      radius = 12,
-      fill = active and "primary/0.18" or nil,
-      border = active and "primary/0.5" or nil,
-      borderWidth = active and 1 or nil,
+      radius = 14,
+      fill = active and "primary/0.18" or "primary/0",
+      border = active and "primary/0.55" or "outline_variant",
+      borderWidth = 1,
       onClick = function()
         if not active then
           applyMain(value, true)
@@ -774,22 +774,19 @@ local function buildSwitchRow(isHijri)
     })
   end
 
-  -- Keep Gregorian on the left and Hijri on the right in both reading
-  -- directions: under RTL the row mirrors its children, so swap them there.
+  -- Two separate pills at opposite ends of the panel instead of one shared
+  -- capsule. Keep Gregorian on the left and Hijri on the far right in both
+  -- reading directions: under RTL the row mirrors its children, so swap.
   local gregorianOption = option("gregorian", tr("gregorian", "Gregorian"), not isHijri)
   local hijriOption = option("hijri", tr("hijri", "Hijri"), isHijri)
   local options = isRtl() and { hijriOption, gregorianOption } or { gregorianOption, hijriOption }
 
-  -- A two-part segmented control instead of the native toggle: both labels
-  -- share one font and the capsule border is identical in either state.
   return ui.row({
-    width = 190,
+    fill = true,
     height = 28,
-    padding = 2,
-    gap = 2,
-    radius = 14,
-    border = "outline_variant",
-    borderWidth = 1,
+    align = "center",
+    justify = "space_between",
+    gap = 8,
   }, options)
 end
 
@@ -806,25 +803,28 @@ local function makeCell(cell, todayG, isHijri)
     and cell.gm == selected.g.m
     and cell.gd == selected.g.d
 
-  local fill
-  local border
-  local borderWidth
+  -- Retained nodes keep appearance props that a later render omits, so every
+  -- cell always sets fill/border explicitly; a zero-alpha role clears them.
+  local fill = "primary/0"
+  local border = "primary/0"
+  local borderWidth = 0
   local primaryColor = cell.inMonth and "on_surface" or "on_surface_variant"
   local secondaryColor = "on_surface_variant"
   local weight = cell.inMonth and "medium" or "normal"
 
-  if isToday then
-    fill = "primary/0.14"
-    border = "primary/0.55"
+  if isSelected then
+    -- Selection gets the outline; today only gets a tint. Keeping them
+    -- different means clicking today off still shows a visible change.
+    fill = "primary/0.2"
+    border = "primary/0.7"
     borderWidth = 1
     primaryColor = "primary"
     secondaryColor = "primary/0.85"
     weight = "bold"
-  elseif isSelected then
-    fill = "surface_variant/0.5"
-    border = "primary/0.4"
-    borderWidth = 1
-    primaryColor = "on_surface"
+  elseif isToday then
+    fill = "primary/0.1"
+    primaryColor = "primary"
+    secondaryColor = "primary/0.8"
     weight = "bold"
   end
 
@@ -863,17 +863,13 @@ local function makeCell(cell, todayG, isHijri)
     gap = 0,
     radius = 6,
     opacity = cell.inMonth and 1.0 or 0.4,
+    fill = fill,
+    border = border,
+    borderWidth = borderWidth,
     onClick = function()
       selectCell(cell)
     end,
   }
-  if fill ~= nil then
-    props.fill = fill
-  end
-  if border ~= nil then
-    props.border = border
-    props.borderWidth = borderWidth
-  end
 
   return ui.column(props, {
     ui.label(primaryProps),

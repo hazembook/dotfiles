@@ -181,22 +181,35 @@ local function clockWantsSeconds()
   return format:find("%%S") ~= nil or format:find("%%T") ~= nil
 end
 
--- The clock's own tooltip only formats a Gregorian strftime string, so the
--- both-calendar tooltip lives on this label instead: one row for each date.
+-- Only show the date that is not already on the bar. When both dates are
+-- visible the tooltip is redundant, so clear it.
 local lastTooltipSignature
-local function updateTooltip()
-  local greg = gregorianText()
-  local hijri = hijriDisplay()
-  local rows = {
-    { key = tr("tooltip.gregorian", "Gregorian"), value = greg },
-  }
-  if hijri ~= nil then
-    rows[#rows + 1] = { key = tr("tooltip.hijri", "Hijri"), value = hijri }
+local function updateTooltip(showGregorian, showHijri)
+  local rows = {}
+  if not showGregorian then
+    rows[#rows + 1] = {
+      key = tr("tooltip.gregorian", "Gregorian"),
+      value = gregorianText(),
+    }
+  end
+  if not showHijri then
+    local hijri = hijriDisplay()
+    if hijri ~= nil then
+      rows[#rows + 1] = { key = tr("tooltip.hijri", "Hijri"), value = hijri }
+    end
   end
 
-  local signature = greg .. "\n" .. tostring(hijri)
+  local signatureParts = {}
+  for _, row in ipairs(rows) do
+    signatureParts[#signatureParts + 1] = row.key .. "=" .. row.value
+  end
+  local signature = table.concat(signatureParts, "\n")
   if signature ~= lastTooltipSignature then
-    barWidget.setTooltip(rows)
+    if #rows == 0 then
+      barWidget.setTooltip(nil)
+    else
+      barWidget.setTooltip(rows)
+    end
     lastTooltipSignature = signature
   end
 end
@@ -224,37 +237,52 @@ local function render()
     end
   end
 
-  local parts = {}
-  local function addLabel(text, weight)
-    parts[#parts + 1] = ui.label({
-      text = text,
-      fontFamily = FONT_FAMILY,
-      fontWeight = weight,
-      maxLines = 1,
-    })
+  local entries = {}
+  local function addEntry(text, weight)
+    entries[#entries + 1] = { text = text, weight = weight }
   end
 
   -- With both dates the clock sits between them:
   --   Gregorian | clock | Hijri
   if showGregorian then
-    addLabel(gregorianText(), "medium")
+    addEntry(gregorianText(), "medium")
   end
   if showClock then
-    addLabel(clockText(), "bold")
+    addEntry(clockText(), "bold")
   end
   if showHijri then
-    addLabel(hijriText(), "medium")
+    addEntry(hijriText(), "medium")
   end
 
   local vertical = barWidget.isVertical()
+  local parts = {}
+  for index, entry in ipairs(entries) do
+    if index > 1 then
+      -- A small rule instead of the text itself, so the three parts read as
+      -- separate blocks without widening the capsule much.
+      parts[#parts + 1] = ui.box({
+        width = vertical and 10 or 1,
+        height = vertical and 1 or 10,
+        radius = 1,
+        fill = "on_surface_variant/0.45",
+      })
+    end
+    parts[#parts + 1] = ui.label({
+      text = entry.text,
+      fontFamily = FONT_FAMILY,
+      fontWeight = entry.weight,
+      maxLines = 1,
+    })
+  end
+
   local container = vertical and ui.column or ui.row
   barWidget.render(container({
-    gap = vertical and 1 or 6,
+    gap = vertical and 2 or 4,
     align = "center",
     justify = "center",
   }, parts))
 
-  updateTooltip()
+  updateTooltip(showGregorian, showHijri)
 end
 
 local function setMain(value)

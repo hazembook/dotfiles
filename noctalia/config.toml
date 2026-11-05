@@ -79,9 +79,11 @@ stat = "ram_pct"
 type = "hazembook/hijri-date:date-clock-hijri"
 display = "clock_both"
 
-# Hijri dates stay Arabic even though the shell is in English.
+# Hijri dates stay Arabic even though the shell is in English; the week
+# starts on Friday in both calendars.
 [plugin_settings."hazembook/hijri-date"]
 hijri_language = "arabic"
+week_start = "friday"
 
 [widget.screen-recorder]
 type = "noctalia/screen_recorder:recorder"

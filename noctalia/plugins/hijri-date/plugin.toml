@@ -1,7 +1,7 @@
 plugin_api = 26
 id = "hazembook/hijri-date"
 name = "Hijri Date"
-version = "1.7.0"
+version = "1.7.1"
 author = "hazembook"
 license = "MIT"
 icon = "clock"
@@ -100,7 +100,7 @@ entry = "hijri_date_desktop.luau"
 id = "calendar"
 entry = "hijri_date_panel.luau"
 width = 400
-height = 500
+height = 520
 placement = "attached"
 position = "center"
 open_near_click = false
