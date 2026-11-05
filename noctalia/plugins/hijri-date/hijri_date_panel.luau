@@ -153,18 +153,38 @@ local render
 local afterData
 local applyMain
 
+-- The panel speaks the language of the calendar it shows: Arabic when the
+-- Hijri calendar is displayed in Arabic, otherwise the shell language. This
+-- also localizes the Gregorian range shown alongside an Arabic Hijri month.
+local function panelLanguage()
+  if main == "hijri" and i18n.hijriIsArabic() then
+    return "ar"
+  end
+  return i18n.lang() or "en"
+end
+
 local function trRaw(key, fallback)
-  return i18n.tr(key, fallback)
+  return i18n.trFor(panelLanguage(), key, fallback)
 end
 
 local function tr(key, fallback)
-  return i18n.tr("panel." .. key, fallback)
+  return trRaw("panel." .. key, fallback)
 end
 
--- The shell's own language setting drives both the catalog and the UI
--- direction, and it is read by the i18n module itself.
+-- Whether the shell itself is RTL. The panel can also be RTL when an Arabic
+-- Hijri calendar is shown in an otherwise LTR shell; see `contentRtl` below.
 local function isRtl()
   return i18n.isRtl()
+end
+
+-- The shell mirrors layout rows only for an RTL shell language. An Arabic
+-- Hijri grid in an English shell therefore has to mirror its own rows.
+local function reversed(items)
+  local result = {}
+  for index = #items, 1, -1 do
+    result[#result + 1] = items[index]
+  end
+  return result
 end
 
 local function weekStart()
@@ -920,6 +940,10 @@ render = function()
   end
 
   local isHijri = main == "hijri"
+  local shellRtl = isRtl()
+  local contentRtl = isHijri and i18n.hijriIsArabic()
+  local rtl = shellRtl or contentRtl
+  local mirrorRows = rtl and not shellRtl
   local key = monthKey(viewYear, viewMonth)
   local entryG = cachedG(viewYear, viewMonth)
   local entryH = cachedH(viewYear, viewMonth)
@@ -973,56 +997,59 @@ render = function()
     maxWidth = 290,
   }
 
-  -- The header row is mirrored by the shell in RTL, so the previous-month
-  -- button sits on the right and must point right, and vice versa.
-  local rtl = isRtl()
+  -- RTL puts the previous-month button on the right, pointing right. The
+  -- shell mirrors the row for an RTL shell; an Arabic Hijri grid in an LTR
+  -- shell is mirrored here instead.
   local previousGlyph = rtl and "chevron-right" or "chevron-left"
   local nextGlyph = rtl and "chevron-left" or "chevron-right"
 
-  local header = ui.row({ align = "center", gap = 6 }, {
-    ui.button({
-      glyph = previousGlyph,
-      variant = "ghost",
-      width = 30,
-      height = 30,
-      tooltip = tr("previous", "Previous month"),
-      onClick = function()
-        local year, month = shiftMonthParts(viewYear, viewMonth, -1)
-        viewYear, viewMonth = year, month
-        selected = nil
-        pendingViewG = nil
-        if main == "hijri" then
-          ensureHView(year, month)
-        else
-          ensureGView(year, month)
-        end
-        render()
-      end,
-    }),
-    ui.column({ flexGrow = 1, align = "center", gap = 0 }, {
-      ui.label(titleProps),
-      ui.label(subtitleProps),
-    }),
-    ui.button({
-      glyph = nextGlyph,
-      variant = "ghost",
-      width = 30,
-      height = 30,
-      tooltip = tr("next", "Next month"),
-      onClick = function()
-        local year, month = shiftMonthParts(viewYear, viewMonth, 1)
-        viewYear, viewMonth = year, month
-        selected = nil
-        pendingViewG = nil
-        if main == "hijri" then
-          ensureHView(year, month)
-        else
-          ensureGView(year, month)
-        end
-        render()
-      end,
-    }),
+  local previousButton = ui.button({
+    glyph = previousGlyph,
+    variant = "ghost",
+    width = 30,
+    height = 30,
+    tooltip = tr("previous", "Previous month"),
+    onClick = function()
+      local year, month = shiftMonthParts(viewYear, viewMonth, -1)
+      viewYear, viewMonth = year, month
+      selected = nil
+      pendingViewG = nil
+      if main == "hijri" then
+        ensureHView(year, month)
+      else
+        ensureGView(year, month)
+      end
+      render()
+    end,
   })
+  local nextButton = ui.button({
+    glyph = nextGlyph,
+    variant = "ghost",
+    width = 30,
+    height = 30,
+    tooltip = tr("next", "Next month"),
+    onClick = function()
+      local year, month = shiftMonthParts(viewYear, viewMonth, 1)
+      viewYear, viewMonth = year, month
+      selected = nil
+      pendingViewG = nil
+      if main == "hijri" then
+        ensureHView(year, month)
+      else
+        ensureGView(year, month)
+      end
+      render()
+    end,
+  })
+  local headerCenter = ui.column({ flexGrow = 1, align = "center", gap = 0 }, {
+    ui.label(titleProps),
+    ui.label(subtitleProps),
+  })
+  local headerChildren = { previousButton, headerCenter, nextButton }
+  if mirrorRows then
+    headerChildren = { nextButton, headerCenter, previousButton }
+  end
+  local header = ui.row({ align = "center", gap = 6 }, headerChildren)
 
   local weekdayCells = {}
   local start = weekStart()
@@ -1045,6 +1072,9 @@ render = function()
         maxLines = 1,
       }),
     }))
+  end
+  if mirrorRows then
+    weekdayCells = reversed(weekdayCells)
   end
   local weekdayRow = ui.row({ gap = 2 }, weekdayCells)
 
@@ -1074,6 +1104,9 @@ render = function()
         local cell = cells[row * 7 + column + 1]
         table.insert(rowCells, makeCell(cell, todayG, isHijri))
       end
+      if mirrorRows then
+        rowCells = reversed(rowCells)
+      end
       table.insert(rows, ui.row({ gap = 2, height = 50 }, rowCells))
     end
     grid = ui.column({ gap = 2 }, rows)
@@ -1100,12 +1133,14 @@ render = function()
     end
   end
 
+  local footerTextAlign = rtl and "end" or "start"
   local footerPrimaryProps = {
     text = footerPrimary,
     fontSize = 13,
     fontWeight = "medium",
     maxLines = 1,
     maxWidth = 300,
+    textAlign = footerTextAlign,
   }
 
   local footerChildren = {
@@ -1117,6 +1152,7 @@ render = function()
         color = "on_surface_variant",
         maxLines = 1,
         maxWidth = 300,
+        textAlign = footerTextAlign,
       }),
     }),
   }
@@ -1145,6 +1181,9 @@ render = function()
       goToday()
     end,
   }))
+  if mirrorRows then
+    footerChildren = reversed(footerChildren)
+  end
 
   panel.render(ui.column({ gap = 8, flexGrow = 1 }, {
     buildSwitchRow(isHijri),

@@ -261,10 +261,10 @@ local function render()
       -- A small rule instead of the text itself, so the three parts read as
       -- separate blocks without widening the capsule much.
       parts[#parts + 1] = ui.box({
-        width = vertical and 10 or 1,
-        height = vertical and 1 or 10,
+        width = vertical and 12 or 2,
+        height = vertical and 2 or 12,
         radius = 1,
-        fill = "on_surface_variant/0.45",
+        fill = "on_surface_variant/0.7",
       })
     end
     parts[#parts + 1] = ui.label({

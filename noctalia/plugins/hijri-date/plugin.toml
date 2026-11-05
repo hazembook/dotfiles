@@ -1,7 +1,7 @@
 plugin_api = 26
 id = "hazembook/hijri-date"
 name = "Hijri Date"
-version = "1.7.1"
+version = "1.8.0"
 author = "hazembook"
 license = "MIT"
 icon = "clock"

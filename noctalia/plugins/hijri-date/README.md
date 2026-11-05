@@ -42,8 +42,10 @@ from the service, e.g. `Tuesday 23 Jumada al-Ula 1448` in English or
 
 The `hijri_language` setting chooses the Hijri date language independently of
 the shell language: `auto` follows the shell, `arabic` keeps the Hijri date in
-Arabic even in an English shell, and `english` does the reverse. Panel layout
-still follows the shell's reading direction.
+Arabic even in an English shell, and `english` does the reverse. The panel
+speaks the language of the calendar on screen: an Arabic Hijri panel uses the
+Arabic catalog and an RTL grid, while Gregorian mode follows the shell
+language.
 
 **Left click** flips the main calendar. The choice is shared with the panel,
 written to `~/.local/state/noctalia/hijri-date-main`, and restored after a
@@ -97,11 +99,13 @@ month and selects today. Clicking another day moves the selection; clicking
 the selected day again clears it, so the highlight and footer details go back
 to the hint. Switching calendars keeps the current selection as the anchor.
 
-With `[shell].lang = "ar"` the panel is RTL: textual labels come from the
-plugin's `ar.json` catalog, the shell mirrors the grid and header, and the
-month arrows point the right way for the reading direction. Hijri month and
-weekday names follow `hijri_language`, so they can stay Arabic in an English
-shell.
+The panel's UI language follows the calendar it is showing. In **Hijri mode**
+with `hijri_language = "arabic"`, the toggle labels, footer hint, **Today**,
+tooltips and error text come from the plugin's `ar.json` catalog, the grid is
+RTL so **Friday is the rightmost column**, and the month arrows point the
+right way. In **Gregorian mode** the panel follows the shell language and the
+usual LTR layout. When the shell itself is RTL, the shell mirrors the rows;
+an Arabic Hijri panel in an English shell mirrors its own rows instead.
 
 Both directions are cached in memory and persistently on disk (under the
 plugin's data directory) for 30 days, so paging back and forth, reopening the

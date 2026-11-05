@@ -71,27 +71,38 @@ local function shellLanguage()
 end
 
 local lang = nil
-local values = {}
+local catalogs = {}
 
-local function loadCatalog(language)
-  lang = language
-  values = {}
+local function buildCatalog(language)
   if type(noctalia.pluginDir) ~= "function" then
-    return
+    return nil
   end
   local dir = noctalia.pluginDir()
   if type(dir) ~= "string" or dir == "" then
-    return
+    return nil
   end
-  values = readCatalog(dir, "en") or {}
+  local merged = readCatalog(dir, "en") or {}
   if language ~= "en" then
     local localized = readCatalog(dir, language)
     if localized ~= nil then
       for key, value in pairs(localized) do
-        values[key] = value
+        merged[key] = value
       end
     end
   end
+  return merged
+end
+
+local function catalog(language)
+  if catalogs[language] == nil then
+    catalogs[language] = buildCatalog(language)
+  end
+  return catalogs[language]
+end
+
+local function loadCatalog(language)
+  lang = language
+  catalog(language)
 end
 
 local M = {}
@@ -136,8 +147,21 @@ function M.hijriIsArabic()
   return M.hijriLang() == "ar"
 end
 
-function M.tr(key, fallback)
-  local value = values[key]
+-- Look up a key in an explicit catalog. The panel uses this to speak the
+-- language of the calendar it currently shows instead of the shell language.
+function M.trFor(language, key, fallback)
+  local target = lang or "en"
+  if type(language) == "string" and language ~= "" then
+    target = language
+  end
+
+  local source = catalog(target) or {}
+  local value = source[key]
+  if type(value) == "string" and value ~= "" then
+    return value
+  end
+  local english = catalog("en") or {}
+  value = english[key]
   if type(value) == "string" and value ~= "" then
     return value
   end
@@ -148,6 +172,10 @@ function M.tr(key, fallback)
     return text
   end
   return fallback or key
+end
+
+function M.tr(key, fallback)
+  return M.trFor(lang, key, fallback)
 end
 
 M.refresh()
