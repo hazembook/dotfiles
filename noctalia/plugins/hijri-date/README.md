@@ -1,8 +1,8 @@
 # Hijri Date
 
-A Noctalia bar date label and a two-calendar month panel for a fixed
-location. The label and the panel share one "main" calendar choice: Gregorian
-or Hijri.
+A configurable Noctalia bar capsule (clock, Gregorian date, Hijri date, or a
+combination) and a two-calendar month panel for a fixed location. The capsule
+and the panel share one "main" calendar choice: Gregorian or Hijri.
 
 ![thumbnail](thumbnail.webp)
 
@@ -11,27 +11,38 @@ or Hijri.
 | Field | Value |
 | --- | --- |
 | ID | `hazembook/hijri-date` |
-| Entries | Bar label: `date-clock-hijri`; desktop/lock widget: `hijri-date`; panel: `calendar`; service: `fetcher` |
+| Entries | Bar widget: `date-clock-hijri`; desktop/lock widget: `hijri-date`; panel: `calendar`; service: `fetcher` |
 | Data source | [aladhan.com](https://aladhan.com) v1 timings + `gToHCalendar` / `hToGCalendar` APIs |
-| Plugin API | 19 |
+| Plugin API | 26 |
 
 ## Usage
 
-Add the `date-clock-hijri` widget from the Add-widget picker and place it on a
-bar next to the shell's clock. It shows one date, in the calendar currently
-selected as **main**:
+Add the `date-clock-hijri` widget from the Add-widget picker. Its `display`
+setting selects what the capsule shows:
 
-- **Gregorian mode** (default) uses the shell's own date format
-  (`noctalia.dateFormat()` / `[shell].date_format`), e.g.
-  `Tuesday 3 November 2026`.
-- **Hijri mode** shows the Hijri date published by the service, e.g.
-  `Tuesday 23 Jumada al-Ula 1448` in English or
-  `الثلاثاء 23 جُمادى الأولى 1448` in Arabic.
+| Mode | Content |
+| --- | --- |
+| `main` (default) | The date of the calendar currently selected as **main** |
+| `gregorian` | Gregorian date only |
+| `hijri` | Hijri date only |
+| `both` | Both dates |
+| `clock` | Clock only |
+| `clock_main` | Clock + main date |
+| `clock_gregorian` | Clock + Gregorian date |
+| `clock_hijri` | Clock + Hijri date |
+| `clock_both` | Clock + both dates |
 
-The bar label follows the shell language: with `[shell].lang = "ar"` the
-weekday and month names come from the plugin's Arabic catalog, the panel
-mirrors to RTL, and every entry re-reads the effective language so a live
-language change stays in sync.
+The clock is always **bold** and the dates use the regular weight. When both
+dates are shown, the clock sits between them: **Gregorian | clock | Hijri**.
+The Gregorian date uses the shell's own format (`noctalia.dateFormat()` /
+`[shell].date_format`), e.g. `Tuesday 3 November 2026`. The Hijri date comes
+from the service, e.g. `Tuesday 23 Jumada al-Ula 1448` in English or
+`الثلاثاء 23 جُمادى الأولى 1448` in Arabic.
+
+The `hijri_language` setting chooses the Hijri date language independently of
+the shell language: `auto` follows the shell, `arabic` keeps the Hijri date in
+Arabic even in an English shell, and `english` does the reverse. Panel layout
+still follows the shell's reading direction.
 
 **Left click** flips the main calendar. The choice is shared with the panel,
 written to `~/.local/state/noctalia/hijri-date-main`, and restored after a
@@ -39,38 +50,35 @@ shell restart.
 
 **Right click** opens the plugin's calendar panel.
 
-Hovering the label shows a two-row tooltip with **Gregorian** and **Hijri**
-dates. The shell's built-in clock tooltip is a single strftime string and
-cannot mix calendars, so it stays out of the way and this label provides the
-combined view.
+Hovering the capsule shows a two-row tooltip with **Gregorian** and **Hijri**
+dates.
 
-### Bar clock
+### Bar widget
 
-The example config also uses Noctalia's built-in `clock` widget next to the
-label. Its left click is pointed at the plugin's panel, and its right click
-opens the shell's own calendar:
+One capsule can replace both the shell clock and a separate date label:
 
 ```toml
 [bar.default]
-center = ["hijri-date", "clock"]
-
-[widget.clock]
-type = "clock"
-
-[widget.clock.actions]
-left = "panel-toggle hazembook/hijri-date:calendar"
-right = "panel-toggle control-center calendar"
+center = ["hijri-date"]
 
 [widget.hijri-date]
 type = "hazembook/hijri-date:date-clock-hijri"
+display = "clock_both"
+
+[plugin_settings."hazembook/hijri-date"]
+hijri_language = "arabic"
 ```
+
+Drop the `display` key for the default `main` mode, or pick any mode from the
+table above.
 
 ### Calendar panel
 
 The panel has a **Gregorian / Hijri** segmented switch above the month title.
-Both segments use the same label font and the capsule border stays consistent
-in either state. The switch changes the same main-calendar setting as the bar
-label, and the grid re-lays out for the selected calendar:
+Gregorian stays on the left and Hijri on the right in both LTR and RTL
+layouts. Both segments use the same label font and the capsule border stays
+consistent in either state. The switch changes the same main-calendar setting
+as the bar widget, and the grid re-lays out for the selected calendar:
 
 - **Gregorian mode** fetches a Gregorian month from `gToHCalendar` and prints
   the Hijri day under each Gregorian day number.
@@ -82,13 +90,15 @@ The week starts on **Friday** by default, matching the Hijri week; the
 the range covered in the other calendar, the footer shows the selected day in
 both calendars, and leading/trailing days from the neighbouring months appear
 muted. The arrows page through months and **Today** returns to the current
-month and selects today. Switching calendars keeps the current selection as
-the anchor.
+month and selects today. Clicking another day moves the selection; clicking
+the selected day again clears it, so the highlight and footer details go back
+to the hint. Switching calendars keeps the current selection as the anchor.
 
-With `[shell].lang = "ar"` the panel is fully Arabic and RTL: month, weekday
-and range labels come from the plugin's `ar.json` catalog, the shell mirrors
-the grid and header, and the month arrows point the right way for the reading
-direction.
+With `[shell].lang = "ar"` the panel is RTL: textual labels come from the
+plugin's `ar.json` catalog, the shell mirrors the grid and header, and the
+month arrows point the right way for the reading direction. Hijri month and
+weekday names follow `hijri_language`, so they can stay Arabic in an English
+shell.
 
 Both directions are cached in memory and persistently on disk (under the
 plugin's data directory) for 30 days, so paging back and forth, reopening the
@@ -126,9 +136,10 @@ for five minutes instead of retrying on every tick, and the previous day's
 values are dropped when the Gregorian date rolls over, so a failed request can
 never leave a stale Hijri date on the bar.
 
-The date, month name and weekday follow the shell language: English names in
-an English shell, Arabic names under `[shell].lang = "ar"`. The Hijri month
-length is taken from the API, so the grid stays correct around month rollovers.
+The Hijri date, month name and weekday follow `hijri_language`: `auto` uses
+the shell language, `arabic` keeps them Arabic in an English shell, and
+`english` does the reverse. The Hijri month length is taken from the API, so
+the grid stays correct around month rollovers.
 
 ## Settings
 
@@ -141,11 +152,24 @@ because the service is the one that fetches:
 | `longitude` | `string` | `13.1913` | Longitude of the location used for prayer times and the Hijri date. |
 | `method` | `string` | `3` | Hijri calculation method (3 = Muslim World League, 4 = Umm al-Qura). |
 | `week_start` | `select` | `friday` | First day of the week in the calendar grid (Friday by default). |
+| `hijri_language` | `select` | `auto` | Hijri date language: `auto` (follow shell), `arabic`, or `english`. |
 
-The Gregorian label and the clock are formatted by the shell, so change them
+The bar widget's `display` setting is per widget instance (Settings → Bar →
+Hijri Date, or `[widget.<name>] display = "…"` in the config):
+
+| Value | Content |
+| --- | --- |
+| `main` | Main calendar date only (default) |
+| `gregorian` / `hijri` | One calendar only |
+| `both` | Both dates |
+| `clock` | Clock only |
+| `clock_main` / `clock_gregorian` / `clock_hijri` / `clock_both` | Clock plus the selected dates |
+
+The Gregorian date and the clock are formatted by the shell, so change them
 in Settings → Shell (or in `[shell].time_format` / `[shell].date_format`).
-The panel and bar label language follows **Settings → Appearance → Language**
-(`[shell].lang`); choose Arabic for the RTL layout.
+The panel and UI language follows **Settings → Appearance → Language**
+(`[shell].lang`); choose Arabic for the RTL layout. The Hijri date itself can
+stay Arabic through `hijri_language`.
 
 ## Debugging
 

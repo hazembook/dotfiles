@@ -43,10 +43,6 @@ local function tr(key, fallback)
   return i18n.tr(key, fallback)
 end
 
-local function isRtl()
-  return i18n.isRtl()
-end
-
 local function escapePattern(text)
   return (text:gsub("(%W)", "%%%1"))
 end
@@ -97,10 +93,10 @@ local function currentMinutes()
 end
 
 local function hijriText()
-  local rtl = isRtl()
-  local today = noctalia.state.get(rtl and "hijri.today" or "hijri.today_en")
+  local arabic = i18n.hijriIsArabic()
+  local today = noctalia.state.get(arabic and "hijri.today" or "hijri.today_en")
     or noctalia.state.get("hijri.today")
-  local tomorrow = noctalia.state.get(rtl and "hijri.tomorrow" or "hijri.tomorrow_en")
+  local tomorrow = noctalia.state.get(arabic and "hijri.tomorrow" or "hijri.tomorrow_en")
     or noctalia.state.get("hijri.tomorrow")
   local maghrib = noctalia.state.get("hijri.maghrib")
   local current = currentMinutes()

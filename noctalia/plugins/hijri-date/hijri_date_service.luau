@@ -3,9 +3,13 @@
 -- result to the bar widget through the plugin's shared state.
 --
 -- State keys (read by the widget):
---   hijri.today      - Hijri date of the current day, formatted
+--   hijri.today      - Hijri date of the current day, in Arabic
+--   hijri.today_en   - the same date in English
 --   hijri.tomorrow   - Hijri date of the next day (it starts at today's Maghrib)
---   hijri.display    - hijri.today or hijri.tomorrow, whichever applies now
+--   hijri.tomorrow_en - the same next day in English
+--   hijri.display    - the current date in the preferred Hijri language
+--   hijri.display_ar - the current date in Arabic
+--   hijri.display_en - the current date in English
 --   hijri.maghrib    - Maghrib in minutes since midnight
 --   hijri.timezone   - IANA zone of the location, for the Maghrib comparison
 --   hijri.day        - Gregorian day (DD-MM-YYYY) the cache belongs to
@@ -23,11 +27,6 @@ local inFlight = false
 
 local function tr(key, fallback)
   return i18n.tr(key, fallback)
-end
-
--- The shell's own language setting also decides the reading direction.
-local function isRtl()
-  return i18n.isRtl()
 end
 
 local function setting(key, fallback)
@@ -146,17 +145,31 @@ end
 -- need another request.
 local function publishDisplay()
   i18n.refresh()
-  local rtl = isRtl()
-  local today = noctalia.state.get(rtl and "hijri.today" or "hijri.today_en")
-    or noctalia.state.get("hijri.today")
-  local tomorrow = noctalia.state.get(rtl and "hijri.tomorrow" or "hijri.tomorrow_en")
-    or noctalia.state.get("hijri.tomorrow")
-  local maghrib = noctalia.state.get("hijri.maghrib")
-  local current = currentLocationMinutes(noctalia.state.get("hijri.timezone"))
 
-  local display = today
-  if maghrib and tomorrow and current ~= nil and current >= maghrib then
-    display = tomorrow
+  local function pick(todayKey, tomorrowKey)
+    local today = noctalia.state.get(todayKey)
+    local tomorrow = noctalia.state.get(tomorrowKey)
+    local maghrib = noctalia.state.get("hijri.maghrib")
+    local current = currentLocationMinutes(noctalia.state.get("hijri.timezone"))
+    if maghrib and tomorrow and current ~= nil and current >= maghrib then
+      return tomorrow
+    end
+    return today
+  end
+
+  local arabic = pick("hijri.today", "hijri.tomorrow")
+  local english = pick("hijri.today_en", "hijri.tomorrow_en")
+
+  -- Publish the variants before the compatibility key: the bar watches
+  -- `hijri.display` and reads whichever variant it needs.
+  noctalia.state.set("hijri.display_ar", arabic)
+  noctalia.state.set("hijri.display_en", english)
+
+  local display
+  if i18n.hijriIsArabic() then
+    display = arabic or english
+  else
+    display = english or arabic
   end
   noctalia.state.set("hijri.display", display)
 end

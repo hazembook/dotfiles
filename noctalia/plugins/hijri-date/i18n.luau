@@ -115,6 +115,27 @@ function M.isRtl()
   return RTL_LANGUAGES[lang] == true
 end
 
+-- Hijri dates have their own language preference: `auto` follows the shell,
+-- `arabic` keeps the Hijri date in Arabic even in an English shell, and
+-- `english` does the reverse.
+function M.hijriLang()
+  local preference = nil
+  if type(noctalia.getConfig) == "function" then
+    preference = noctalia.getConfig("hijri_language")
+  end
+  if preference == "arabic" then
+    return "ar"
+  end
+  if preference == "english" then
+    return "en"
+  end
+  return RTL_LANGUAGES[lang] == true and "ar" or "en"
+end
+
+function M.hijriIsArabic()
+  return M.hijriLang() == "ar"
+end
+
 function M.tr(key, fallback)
   local value = values[key]
   if type(value) == "string" and value ~= "" then

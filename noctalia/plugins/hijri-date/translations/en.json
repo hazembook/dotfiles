@@ -38,6 +38,26 @@
       "description": "Hijri calculation method (3 = Muslim World League, 4 = Umm al-Qura).",
       "label": "Calculation method"
     },
+    "hijri_language": {
+      "description": "Language for Hijri dates in the bar, panel and desktop widget.",
+      "label": "Hijri date language",
+      "auto": "Follow shell language",
+      "arabic": "Arabic",
+      "english": "English"
+    },
+    "display": {
+      "description": "What the bar capsule shows. The clock is always bold.",
+      "label": "Bar content",
+      "main": "Main date only",
+      "gregorian": "Gregorian date only",
+      "hijri": "Hijri date only",
+      "both": "Both dates",
+      "clock": "Clock only",
+      "clock_main": "Clock + main date",
+      "clock_gregorian": "Clock + Gregorian date",
+      "clock_hijri": "Clock + Hijri date",
+      "clock_both": "Clock + both dates"
+    },
     "week_start": {
       "description": "First day of the week shown in the calendar grid.",
       "friday": "Friday",

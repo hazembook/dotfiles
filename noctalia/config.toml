@@ -36,7 +36,9 @@ margin_ends = 0
 margin_edge = 0
 margin_opposite_edge = 0
 padding = 5
-center = ["hijri-date", "clock"]
+# One capsule with the clock and both dates; the built-in clock would
+# duplicate it.
+center = ["hijri-date"]
 end = [
     "tray",
     "notifications",
@@ -69,22 +71,17 @@ stat = "cpu_usage"
 type = "sysmon"
 stat = "ram_pct"
 
-# The bar clock is the shell's own clock widget. Left click opens the Hijri
-# calendar panel; right click keeps the shell's built-in calendar. The clock's
-# tooltip is a strftime string and cannot include the Hijri date, so the
-# both-calendar tooltip lives on the plugin's date label instead.
-[widget.clock]
-type = "clock"
-
-[widget.clock.actions]
-left = "panel-toggle hazembook/hijri-date:calendar"
-right = "panel-toggle control-center calendar"
-
-# The date label next to the clock shows whichever calendar is "main". Left
-# click flips it; right click opens the calendar panel.
+# One bar capsule: a bold clock and both dates in the regular weight. Left
+# click flips the "main" calendar; right click opens the calendar panel. The
+# both-calendar tooltip lives on this label because the built-in clock's
+# tooltip is a plain strftime string.
 [widget.hijri-date]
 type = "hazembook/hijri-date:date-clock-hijri"
-font_weight = 700
+display = "clock_both"
+
+# Hijri dates stay Arabic even though the shell is in English.
+[plugin_settings."hazembook/hijri-date"]
+hijri_language = "arabic"
 
 [widget.screen-recorder]
 type = "noctalia/screen_recorder:recorder"

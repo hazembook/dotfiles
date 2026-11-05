@@ -1,20 +1,40 @@
 --!nonstrict
--- Hijri Date bar widget - a compact label showing the date in the calendar
--- selected as "main" (Gregorian or Hijri).
+-- Hijri Date bar widget - a configurable label showing the clock, the
+-- Gregorian date, the Hijri date, or a combination of them.
 --
--- Left click flips the main calendar; right click opens the calendar panel.
--- The panel reads the same choice from `hijri.calendar.main`, so the bar and
--- the panel always agree. The choice is also written to a small state file so
--- it survives a shell restart.
+-- `display` selects what is shown: the clock alone, the clock plus one or
+-- both dates, or dates without the clock. The clock is bold; dates keep the
+-- regular weight. Left click flips the main calendar; right click opens the
+-- calendar panel. The panel reads the same choice from `hijri.calendar.main`,
+-- so the bar and the panel always agree. The choice is also written to a
+-- small state file so it survives a shell restart.
 --
 -- The Hijri date and the Maghrib rollover are handled by the service entry
 -- (hijri_date_service.luau); the widget only renders what it publishes.
 -- The Gregorian date comes from the shell's own [shell].date_format.
+--
+-- Debug helpers:
+--   noctalia msg plugin hazembook/hijri-date:date-clock-hijri all toggle
+--   noctalia msg plugin hazembook/hijri-date:date-clock-hijri all main gregorian
+--   noctalia msg plugin hazembook/hijri-date:date-clock-hijri all status
 
 local i18n = require("./i18n.luau")
 
 local MAIN_KEY = "hijri.calendar.main"
+local PANEL_ID = "hazembook/hijri-date:calendar"
 local FONT_FAMILY = "Amiri"
+
+local DISPLAY_MODES = {
+  main = true,
+  gregorian = true,
+  hijri = true,
+  both = true,
+  clock = true,
+  clock_main = true,
+  clock_gregorian = true,
+  clock_hijri = true,
+  clock_both = true,
+}
 
 local WEEKDAY_KEYS = { "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday" }
 local WEEKDAY_SHORT_EN = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" }
@@ -44,11 +64,6 @@ local MONTHS_EN = {
 
 local function tr(key, fallback)
   return i18n.tr(key, fallback)
-end
-
--- The shell's own language setting also decides the reading direction.
-local function isRtl()
-  return i18n.isRtl()
 end
 
 local function escapePattern(text)
@@ -126,16 +141,56 @@ end
 
 local main = readMain()
 
+local function displayMode()
+  local value = noctalia.getConfig("display")
+  if type(value) == "string" and DISPLAY_MODES[value] then
+    return value
+  end
+  return "main"
+end
+
+local function hijriDisplay()
+  local key = i18n.hijriIsArabic() and "hijri.display_ar" or "hijri.display_en"
+  local value = noctalia.state.get(key)
+  if type(value) ~= "string" or value == "" then
+    value = noctalia.state.get("hijri.display")
+  end
+  if type(value) ~= "string" or value == "" then
+    return nil
+  end
+  return value
+end
+
+local function hijriText()
+  return hijriDisplay() or placeholder()
+end
+
+local function clockText()
+  local value = noctalia.formatTime(noctalia.timeFormat())
+  if type(value) ~= "string" or value == "" then
+    return "--:--"
+  end
+  return value
+end
+
+local function clockWantsSeconds()
+  local format = noctalia.timeFormat()
+  if type(format) ~= "string" then
+    return false
+  end
+  return format:find("%%S") ~= nil or format:find("%%T") ~= nil
+end
+
 -- The clock's own tooltip only formats a Gregorian strftime string, so the
 -- both-calendar tooltip lives on this label instead: one row for each date.
 local lastTooltipSignature
 local function updateTooltip()
   local greg = gregorianText()
-  local hijri = noctalia.state.get("hijri.display")
+  local hijri = hijriDisplay()
   local rows = {
     { key = tr("tooltip.gregorian", "Gregorian"), value = greg },
   }
-  if type(hijri) == "string" and hijri ~= "" then
+  if hijri ~= nil then
     rows[#rows + 1] = { key = tr("tooltip.hijri", "Hijri"), value = hijri }
   end
 
@@ -148,11 +203,57 @@ end
 
 local function render()
   i18n.refresh()
-  if main == "hijri" then
-    barWidget.setText(noctalia.state.get("hijri.display") or placeholder())
-  else
-    barWidget.setText(gregorianText())
+
+  local mode = displayMode()
+  local showMain = mode == "main" or mode == "clock_main"
+  local showGregorian = mode == "gregorian"
+    or mode == "both"
+    or mode == "clock_gregorian"
+    or mode == "clock_both"
+  local showHijri = mode == "hijri"
+    or mode == "both"
+    or mode == "clock_hijri"
+    or mode == "clock_both"
+  local showClock = mode == "clock" or mode:match("^clock_") ~= nil
+
+  if showMain then
+    if main == "hijri" then
+      showHijri = true
+    else
+      showGregorian = true
+    end
   end
+
+  local parts = {}
+  local function addLabel(text, weight)
+    parts[#parts + 1] = ui.label({
+      text = text,
+      fontFamily = FONT_FAMILY,
+      fontWeight = weight,
+      maxLines = 1,
+    })
+  end
+
+  -- With both dates the clock sits between them:
+  --   Gregorian | clock | Hijri
+  if showGregorian then
+    addLabel(gregorianText(), "medium")
+  end
+  if showClock then
+    addLabel(clockText(), "bold")
+  end
+  if showHijri then
+    addLabel(hijriText(), "medium")
+  end
+
+  local vertical = barWidget.isVertical()
+  local container = vertical and ui.column or ui.row
+  barWidget.render(container({
+    gap = vertical and 1 or 6,
+    align = "center",
+    justify = "center",
+  }, parts))
+
   updateTooltip()
 end
 
@@ -167,8 +268,9 @@ local function setMain(value)
 end
 
 -- One-time setup: the top level of the script runs once at load.
-barWidget.setFont(FONT_FAMILY)
-noctalia.setUpdateInterval(60000)
+local initialMode = displayMode()
+local initialClock = initialMode == "clock" or initialMode:match("^clock_") ~= nil
+noctalia.setUpdateInterval(initialClock and clockWantsSeconds() and 1000 or 60000)
 
 -- Another entry (the panel) can change the shared choice too.
 noctalia.state.watch(MAIN_KEY, function(value)
@@ -193,13 +295,9 @@ function onClick()
 end
 
 function onRightClick()
-  noctalia.togglePanel("hazembook/hijri-date:calendar")
+  noctalia.togglePanel(PANEL_ID)
 end
 
--- Debug helpers:
---   noctalia msg plugin hazembook/hijri-date:date-clock-hijri all toggle
---   noctalia msg plugin hazembook/hijri-date:date-clock-hijri all main gregorian
---   noctalia msg plugin hazembook/hijri-date:date-clock-hijri all status
 function onIpc(event, payload)
   if event == "toggle" then
     setMain(main == "hijri" and "gregorian" or "hijri")
@@ -209,8 +307,10 @@ function onIpc(event, payload)
     noctalia.notify(
       "Hijri Date",
       "main: " .. main
+        .. "\ndisplay: " .. displayMode()
+        .. "\nhijri language: " .. i18n.hijriLang()
         .. "\ngregorian: " .. gregorianText()
-        .. "\nhijri: " .. tostring(noctalia.state.get("hijri.display") or placeholder())
+        .. "\nhijri: " .. tostring(hijriDisplay() or placeholder())
         .. "\nmaghrib: " .. tostring(noctalia.state.get("hijri.maghrib"))
         .. "\ntimezone: " .. tostring(noctalia.state.get("hijri.timezone"))
         .. "\nfetched_at: " .. tostring(noctalia.state.get("hijri.fetched_at"))

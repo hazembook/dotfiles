@@ -87,6 +87,18 @@ local WEEKDAY_LONG_EN = {
   "Friday",
   "Saturday",
 }
+-- Used when the Hijri grid stays Arabic in a non-Arabic shell, where the
+-- catalogs only hold the shell language.
+local WEEKDAY_SHORT_AR = { "أحد", "إثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت" }
+local WEEKDAY_LONG_AR = {
+  "الأحد",
+  "الاثنين",
+  "الثلاثاء",
+  "الأربعاء",
+  "الخميس",
+  "الجمعة",
+  "السبت",
+}
 local WEEK_START_INDEX = {
   sunday = 0,
   monday = 1,
@@ -176,7 +188,7 @@ local function gregorianMonthName(month)
 end
 
 local function hijriMonthName(month, arabicName, englishName)
-  if isRtl() then
+  if i18n.hijriIsArabic() then
     return (arabicName ~= nil and arabicName ~= "") and arabicName or HIJRI_MONTHS[month] or ""
   end
   return (englishName ~= nil and englishName ~= "") and englishName or HIJRI_MONTHS_EN[month] or arabicName or ""
@@ -373,9 +385,16 @@ local function hijriFull(h, g)
     return nil
   end
   local weekday = ""
-  if g ~= nil then
+  if i18n.hijriIsArabic() then
+    if h.w ~= nil and h.w ~= "" then
+      weekday = h.w .. " "
+    elseif g ~= nil then
+      local wday = os.date("*t", os.time({ year = g.y, month = g.m, day = g.d })).wday
+      weekday = WEEKDAY_LONG_AR[weekdayIndexFromWday(wday) + 1] .. " "
+    end
+  elseif g ~= nil then
     local wday = os.date("*t", os.time({ year = g.y, month = g.m, day = g.d })).wday
-    weekday = weekdayName(weekdayIndexFromWday(wday), true) .. " "
+    weekday = WEEKDAY_LONG_EN[weekdayIndexFromWday(wday) + 1] .. " "
   elseif h.w ~= nil and h.w ~= "" then
     weekday = h.w .. " "
   end
@@ -755,6 +774,12 @@ local function buildSwitchRow(isHijri)
     })
   end
 
+  -- Keep Gregorian on the left and Hijri on the right in both reading
+  -- directions: under RTL the row mirrors its children, so swap them there.
+  local gregorianOption = option("gregorian", tr("gregorian", "Gregorian"), not isHijri)
+  local hijriOption = option("hijri", tr("hijri", "Hijri"), isHijri)
+  local options = isRtl() and { hijriOption, gregorianOption } or { gregorianOption, hijriOption }
+
   -- A two-part segmented control instead of the native toggle: both labels
   -- share one font and the capsule border is identical in either state.
   return ui.row({
@@ -765,10 +790,7 @@ local function buildSwitchRow(isHijri)
     radius = 14,
     border = "outline_variant",
     borderWidth = 1,
-  }, {
-    option("gregorian", tr("gregorian", "Gregorian"), not isHijri),
-    option("hijri", tr("hijri", "Hijri"), isHijri),
-  })
+  }, options)
 end
 
 local selectCell
@@ -1009,9 +1031,19 @@ render = function()
   local weekdayCells = {}
   local start = weekStart()
   for index = 0, 6 do
+    local weekdayIndex = (start + index) % 7
+    local weekdayText
+    if isHijri then
+      -- The Hijri grid keeps its own language, independent of the shell.
+      weekdayText = i18n.hijriIsArabic()
+          and WEEKDAY_SHORT_AR[weekdayIndex + 1]
+        or WEEKDAY_SHORT_EN[weekdayIndex + 1]
+    else
+      weekdayText = weekdayName(weekdayIndex, false)
+    end
     table.insert(weekdayCells, ui.column({ flexGrow = 1, align = "center" }, {
       ui.label({
-        text = weekdayName((start + index) % 7, false),
+        text = weekdayText,
         fontSize = 11,
         color = "on_surface_variant",
         maxLines = 1,
@@ -1157,6 +1189,19 @@ function goToday()
 end
 
 selectCell = function(cell)
+  -- Clicking the selected day again clears the selection, so the footer goes
+  -- back to the hint and the cell loses its outline.
+  if selected ~= nil
+    and selected.g ~= nil
+    and selected.g.y == cell.gy
+    and selected.g.m == cell.gm
+    and selected.g.d == cell.gd then
+    selected = nil
+    pendingViewG = nil
+    render()
+    return
+  end
+
   local hijri = nil
   if cell.hd ~= nil then
     hijri = {

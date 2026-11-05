@@ -1,7 +1,7 @@
 plugin_api = 26
 id = "hazembook/hijri-date"
 name = "Hijri Date"
-version = "1.6.0"
+version = "1.7.0"
 author = "hazembook"
 license = "MIT"
 icon = "clock"
@@ -50,9 +50,43 @@ options = [
   { value = "thursday", label_key = "settings.week_start.thursday" },
 ]
 
+# Hijri dates can stay in Arabic even when the shell language is English.
+[[setting]]
+key = "hijri_language"
+type = "select"
+label_key = "settings.hijri_language.label"
+description_key = "settings.hijri_language.description"
+default = "auto"
+options = [
+  { value = "auto", label_key = "settings.hijri_language.auto" },
+  { value = "arabic", label_key = "settings.hijri_language.arabic" },
+  { value = "english", label_key = "settings.hijri_language.english" },
+]
+
 [[widget]]
 id = "date-clock-hijri"
 entry = "hijri_date_widget.luau"
+
+  # What the bar capsule shows. The clock is bold and the dates use the
+  # regular weight. `main` follows the Gregorian/Hijri choice toggled by a
+  # left click; the explicit modes pin one date or show both.
+  [[widget.setting]]
+  key = "display"
+  type = "select"
+  label_key = "settings.display.label"
+  description_key = "settings.display.description"
+  default = "main"
+  options = [
+    { value = "main", label_key = "settings.display.main" },
+    { value = "gregorian", label_key = "settings.display.gregorian" },
+    { value = "hijri", label_key = "settings.display.hijri" },
+    { value = "both", label_key = "settings.display.both" },
+    { value = "clock", label_key = "settings.display.clock" },
+    { value = "clock_main", label_key = "settings.display.clock_main" },
+    { value = "clock_gregorian", label_key = "settings.display.clock_gregorian" },
+    { value = "clock_hijri", label_key = "settings.display.clock_hijri" },
+    { value = "clock_both", label_key = "settings.display.clock_both" },
+  ]
 
 # Desktop / lock-screen widget: the same Hijri date, without the clock.
 [[desktop_widget]]
