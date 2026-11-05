@@ -72,7 +72,7 @@ type = "sysmon"
 stat = "ram_pct"
 
 # One bar capsule: a bold clock and both dates in the regular weight. Left
-# click flips the "main" calendar; right click opens the calendar panel. The
+# click opens the calendar panel; right click flips the "main" calendar. The
 # both-calendar tooltip lives on this label because the built-in clock's
 # tooltip is a plain strftime string.
 [widget.hijri-date]

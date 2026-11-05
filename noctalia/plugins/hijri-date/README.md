@@ -47,11 +47,11 @@ speaks the language of the calendar on screen: an Arabic Hijri panel uses the
 Arabic catalog and an RTL grid, while Gregorian mode follows the shell
 language.
 
-**Left click** flips the main calendar. The choice is shared with the panel,
+**Left click** opens the plugin's calendar panel.
+
+**Right click** flips the main calendar. The choice is shared with the panel,
 written to `~/.local/state/noctalia/hijri-date-main`, and restored after a
 shell restart.
-
-**Right click** opens the plugin's calendar panel.
 
 The tooltip is only used for dates that are not already visible: with both
 dates on the bar it is cleared, with one date it shows the other one, and with

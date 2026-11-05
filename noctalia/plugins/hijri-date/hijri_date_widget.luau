@@ -4,8 +4,8 @@
 --
 -- `display` selects what is shown: the clock alone, the clock plus one or
 -- both dates, or dates without the clock. The clock is bold; dates keep the
--- regular weight. Left click flips the main calendar; right click opens the
--- calendar panel. The panel reads the same choice from `hijri.calendar.main`,
+-- regular weight. Left click opens the calendar panel; right click flips the
+-- main calendar. The panel reads the same choice from `hijri.calendar.main`,
 -- so the bar and the panel always agree. The choice is also written to a
 -- small state file so it survives a shell restart.
 --
@@ -319,11 +319,11 @@ function update()
 end
 
 function onClick()
-  setMain(main == "hijri" and "gregorian" or "hijri")
+  noctalia.togglePanel(PANEL_ID)
 end
 
 function onRightClick()
-  noctalia.togglePanel(PANEL_ID)
+  setMain(main == "hijri" and "gregorian" or "hijri")
 end
 
 function onIpc(event, payload)

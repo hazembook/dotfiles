@@ -1,7 +1,7 @@
 plugin_api = 26
 id = "hazembook/hijri-date"
 name = "Hijri Date"
-version = "1.8.0"
+version = "1.8.1"
 author = "hazembook"
 license = "MIT"
 icon = "clock"
@@ -68,8 +68,8 @@ id = "date-clock-hijri"
 entry = "hijri_date_widget.luau"
 
   # What the bar capsule shows. The clock is bold and the dates use the
-  # regular weight. `main` follows the Gregorian/Hijri choice toggled by a
-  # left click; the explicit modes pin one date or show both.
+  # regular weight. `main` follows the shared Gregorian/Hijri choice toggled
+  # by a right click; the explicit modes pin one date or show both.
   [[widget.setting]]
   key = "display"
   type = "select"
