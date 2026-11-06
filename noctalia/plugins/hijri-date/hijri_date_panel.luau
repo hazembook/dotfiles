@@ -7,7 +7,7 @@
 -- real 29/30-day Hijri month with the Gregorian day under each number, so the
 -- grid itself follows the selected main calendar.
 --
--- Both directions are cached in memory and persistently on disk for 30 days,
+-- Both directions are cached in memory and persistently on disk for one year,
 -- so paging back and forth, reopening the panel and restarting the shell do
 -- not hit the network again.
 --
