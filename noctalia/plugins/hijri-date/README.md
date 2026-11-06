@@ -15,6 +15,14 @@ and the panel share one "main" calendar choice: Gregorian or Hijri.
 | Data source | [aladhan.com](https://aladhan.com) v1 timings + `gToHCalendar` / `hToGCalendar` APIs |
 | Plugin API | 26 |
 
+## Documentation
+
+| Document | What it covers |
+| --- | --- |
+| [Codebase map](docs/codebase-map.md) | Entries, state contract, file responsibilities, risk tiers, reading order, and change map |
+| [Network map](docs/network-map.md) | The day's request lifecycle, exact API calls, cache layout, retries, concurrency, and timezone traps |
+| [Learning Luau](docs/learning-luau.md) | A six-week path from reading the plugin to changing it without an agent, with exercises and an AI-independence contract |
+
 ## Usage
 
 Add the `date-clock-hijri` widget from the Add-widget picker. Its `display`
@@ -162,6 +170,9 @@ the grid stays correct around month rollovers.
 - Switching between Gregorian and Hijri warms the other direction on first
   use. Changing the language, the main calendar or a display mode does not
   fetch anything.
+
+The full request lifecycle, cache layout, retry behaviour, and timezone traps
+are in [docs/network-map.md](docs/network-map.md).
 
 ## Settings
 
