@@ -10,6 +10,14 @@
 --   hijri.display    - the current date in the preferred Hijri language
 --   hijri.display_ar - the current date in Arabic
 --   hijri.display_en - the current date in English
+--   hijri.today_h    - { y, m, d } Hijri date of the civil day
+--   hijri.tomorrow_h - { y, m, d } Hijri date that starts at today's Maghrib
+--   hijri.today_g    - { y, m, d } Gregorian date of the civil day
+--   hijri.tomorrow_g - { y, m, d } Gregorian counterpart of tomorrow_h
+--   hijri.current_h  - { y, m, d } Hijri day in effect now (after Maghrib it
+--                      is tomorrow_h)
+--   hijri.current_g  - { y, m, d } Gregorian counterpart of current_h
+--   hijri.after_maghrib - whether current_h is tomorrow_h
 --   hijri.maghrib    - Maghrib in minutes since midnight
 --   hijri.timezone   - IANA zone of the location, for the Maghrib comparison
 --   hijri.day        - Gregorian day (DD-MM-YYYY) the cache belongs to
@@ -97,6 +105,34 @@ local function formatHijriAr(hijri)
   return (hijri.weekday.ar or "") .. " " .. hijri.day .. " " .. (hijri.month.ar or "") .. " " .. hijri.year
 end
 
+-- The panel needs the numeric date, not the formatted label. Both API
+-- payloads (timings and the calendar endpoints) expose year/month.number/day.
+local function hijriParts(hijri)
+  if type(hijri) ~= "table" then
+    return nil
+  end
+  local year = tonumber(hijri.year)
+  local month = tonumber(hijri.month and hijri.month.number)
+  local day = tonumber(hijri.day)
+  if year == nil or month == nil or day == nil then
+    return nil
+  end
+  return { y = year, m = month, d = day }
+end
+
+local function gregorianParts(gregorian)
+  if type(gregorian) ~= "table" then
+    return nil
+  end
+  local year = tonumber(gregorian.year)
+  local month = tonumber(gregorian.month and gregorian.month.number)
+  local day = tonumber(gregorian.day)
+  if year == nil or month == nil or day == nil then
+    return nil
+  end
+  return { y = year, m = month, d = day }
+end
+
 -- Gregorian weekday of today -> the key of the next day. The Hijri day that
 -- starts at Maghrib is the one that contains the next Gregorian day.
 local NEXT_WEEKDAY = {
@@ -146,24 +182,31 @@ end
 local function publishDisplay()
   i18n.refresh()
 
+  local maghrib = noctalia.state.get("hijri.maghrib")
+  local current = currentLocationMinutes(noctalia.state.get("hijri.timezone"))
+  local afterMaghrib = maghrib ~= nil and current ~= nil and current >= maghrib
+
   local function pick(todayKey, tomorrowKey)
-    local today = noctalia.state.get(todayKey)
-    local tomorrow = noctalia.state.get(tomorrowKey)
-    local maghrib = noctalia.state.get("hijri.maghrib")
-    local current = currentLocationMinutes(noctalia.state.get("hijri.timezone"))
-    if maghrib and tomorrow and current ~= nil and current >= maghrib then
-      return tomorrow
+    if afterMaghrib then
+      local tomorrow = noctalia.state.get(tomorrowKey)
+      if tomorrow ~= nil then
+        return tomorrow
+      end
     end
-    return today
+    return noctalia.state.get(todayKey)
   end
 
   local arabic = pick("hijri.today", "hijri.tomorrow")
   local english = pick("hijri.today_en", "hijri.tomorrow_en")
 
   -- Publish the variants before the compatibility key: the bar watches
-  -- `hijri.display` and reads whichever variant it needs.
+  -- `hijri.display` and reads whichever variant it needs. The structured
+  -- values let the panel highlight the same Maghrib-aware day as the bar.
   noctalia.state.set("hijri.display_ar", arabic)
   noctalia.state.set("hijri.display_en", english)
+  noctalia.state.set("hijri.after_maghrib", afterMaghrib)
+  noctalia.state.set("hijri.current_h", pick("hijri.today_h", "hijri.tomorrow_h"))
+  noctalia.state.set("hijri.current_g", pick("hijri.today_g", "hijri.tomorrow_g"))
 
   local display
   if i18n.hijriIsArabic() then
@@ -177,6 +220,8 @@ end
 -- Publishes the fetched day plus the day that starts at the coming Maghrib.
 local function applyDay(data, tomorrowData)
   local hijri = data.date.hijri
+  local tomorrowHijri = tomorrowData ~= nil and tomorrowData.date.hijri or nil
+  local tomorrowGregorian = tomorrowData ~= nil and tomorrowData.date.gregorian or nil
 
   local tomorrowText
   local tomorrowTextEn
@@ -200,6 +245,18 @@ local function applyDay(data, tomorrowData)
         .. " " .. nextDay
         .. " " .. (hijri.month.en or hijri.month.ar or "")
         .. " " .. hijri.year
+      -- Keep the structured rollover in step with the text fallback.
+      tomorrowHijri = {
+        year = hijri.year,
+        day = nextDay,
+        month = { number = hijri.month.number },
+      }
+      local nextG = os.date("*t", os.time() + 86400)
+      tomorrowGregorian = {
+        year = nextG.year,
+        month = { number = nextG.month },
+        day = nextG.day,
+      }
     end
   end
 
@@ -207,6 +264,10 @@ local function applyDay(data, tomorrowData)
   noctalia.state.set("hijri.today_en", formatHijriEn(hijri, data.date.gregorian))
   noctalia.state.set("hijri.tomorrow", tomorrowText)
   noctalia.state.set("hijri.tomorrow_en", tomorrowTextEn)
+  noctalia.state.set("hijri.today_h", hijriParts(hijri))
+  noctalia.state.set("hijri.tomorrow_h", hijriParts(tomorrowHijri))
+  noctalia.state.set("hijri.today_g", gregorianParts(data.date.gregorian))
+  noctalia.state.set("hijri.tomorrow_g", gregorianParts(tomorrowGregorian))
   noctalia.state.set("hijri.maghrib", timeToMinutes(data.timings.Maghrib))
   noctalia.state.set("hijri.timezone", (data.meta and data.meta.timezone) or nil)
   noctalia.state.set("hijri.fetched_at", os.time())
@@ -255,6 +316,13 @@ local function refresh()
     noctalia.state.set("hijri.today_en", nil)
     noctalia.state.set("hijri.tomorrow", nil)
     noctalia.state.set("hijri.tomorrow_en", nil)
+    noctalia.state.set("hijri.today_h", nil)
+    noctalia.state.set("hijri.tomorrow_h", nil)
+    noctalia.state.set("hijri.today_g", nil)
+    noctalia.state.set("hijri.tomorrow_g", nil)
+    noctalia.state.set("hijri.current_h", nil)
+    noctalia.state.set("hijri.current_g", nil)
+    noctalia.state.set("hijri.after_maghrib", nil)
     noctalia.state.set("hijri.maghrib", nil)
     noctalia.state.set("hijri.day", todayDMY)
     needsFetch = true

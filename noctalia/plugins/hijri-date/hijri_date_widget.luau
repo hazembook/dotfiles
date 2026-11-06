@@ -3,11 +3,12 @@
 -- Gregorian date, the Hijri date, or a combination of them.
 --
 -- `display` selects what is shown: the clock alone, the clock plus one or
--- both dates, or dates without the clock. The clock is bold; dates keep the
--- regular weight. Left click opens the calendar panel; right click flips the
--- main calendar. The panel reads the same choice from `hijri.calendar.main`,
--- so the bar and the panel always agree. The choice is also written to a
--- small state file so it survives a shell restart.
+-- both dates, or dates without the clock. The capsule uses Amiri Bold when it
+-- is installed, for the clock and both dates.
+-- Left click opens the calendar panel; right click flips the main calendar.
+-- The panel reads the same choice from `hijri.calendar.main`, so the bar and
+-- the panel always agree. The choice is also written to a small state file so
+-- it survives a shell restart.
 --
 -- The Hijri date and the Maghrib rollover are handled by the service entry
 -- (hijri_date_service.luau); the widget only renders what it publishes.
@@ -238,25 +239,25 @@ local function render()
   end
 
   local entries = {}
-  local function addEntry(text, weight)
-    entries[#entries + 1] = { text = text, weight = weight }
+  local function addEntry(text)
+    entries[#entries + 1] = text
   end
 
   -- With both dates the clock sits between them:
   --   Gregorian | clock | Hijri
   if showGregorian then
-    addEntry(gregorianText(), "medium")
+    addEntry(gregorianText())
   end
   if showClock then
-    addEntry(clockText(), "bold")
+    addEntry(clockText())
   end
   if showHijri then
-    addEntry(hijriText(), "medium")
+    addEntry(hijriText())
   end
 
   local vertical = barWidget.isVertical()
   local parts = {}
-  for index, entry in ipairs(entries) do
+  for index, text in ipairs(entries) do
     if index > 1 then
       -- A small rule instead of the text itself, so the three parts read as
       -- separate blocks without widening the capsule much.
@@ -268,9 +269,9 @@ local function render()
       })
     end
     parts[#parts + 1] = ui.label({
-      text = entry.text,
+      text = text,
       fontFamily = FONT_FAMILY,
-      fontWeight = entry.weight,
+      fontWeight = "bold",
       maxLines = 1,
     })
   end

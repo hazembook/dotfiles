@@ -71,10 +71,14 @@ stat = "cpu_usage"
 type = "sysmon"
 stat = "ram_pct"
 
-# One bar capsule: a bold clock and both dates in the regular weight. Left
-# click opens the calendar panel; right click flips the "main" calendar. The
-# both-calendar tooltip lives on this label because the built-in clock's
-# tooltip is a plain strftime string.
+# Show only the network glyph; the SSID stays in the tooltip.
+[widget.network]
+show_label = false
+
+# One bar capsule: the clock and both dates in Amiri Bold. Left click opens the
+# calendar panel; right click flips the "main" calendar. The both-calendar
+# tooltip lives on this label because the built-in clock's tooltip is a plain
+# strftime string.
 [widget.hijri-date]
 type = "hazembook/hijri-date:date-clock-hijri"
 display = "clock_both"

@@ -29,7 +29,9 @@ local MAIN_KEY = "hijri.calendar.main"
 local GCACHE_KEY = "hijri.calendar.gcache.v3"
 local HCACHE_KEY = "hijri.calendar.hcache.v3"
 local CACHE_VERSION = 3
-local CACHE_TTL_SECONDS = 30 * 24 * 60 * 60
+-- Calendar mappings are stable for a given calculation method, so a fetched
+-- month is kept for a year instead of expiring after a few weeks.
+local CACHE_TTL_SECONDS = 365 * 24 * 60 * 60
 
 local MDAYS = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
 local HIJRI_MONTHS = {
@@ -142,6 +144,7 @@ local pendingH = {}
 local failedG = {}
 local failedH = {}
 local isOpen = false
+local lastCurrentHKey = nil
 local main = "gregorian"
 local viewYear
 local viewMonth
@@ -241,6 +244,31 @@ end
 local function todayParts()
   local now = os.date("*t")
   return now.year, now.month, now.day
+end
+
+local function stateYmd(key)
+  local value = noctalia.state.get(key)
+  if type(value) ~= "table" then
+    return nil
+  end
+  local year = tonumber(value.y)
+  local month = tonumber(value.m)
+  local day = tonumber(value.d)
+  if year == nil or month == nil or day == nil then
+    return nil
+  end
+  return { y = year, m = month, d = day }
+end
+
+-- The service publishes the Hijri day in effect now, already rolled over at
+-- Maghrib. The panel prefers it over converting the civil date so the
+-- highlighted day always matches the bar.
+local function currentHijri()
+  return stateYmd("hijri.current_h")
+end
+
+local function currentHijriGregorian()
+  return stateYmd("hijri.current_g")
 end
 
 local function gregorianLong(year, month, day)
@@ -398,6 +426,34 @@ local function hijriForGDate(g)
     name = day.hn or "",
     name_en = day.hn_en or "",
   }
+end
+
+-- Finds a Hijri day in the panel cache and returns it with the Gregorian
+-- date the API assigns to it. Used by Today and by the Maghrib rollover.
+local function hijriCellFor(hijri)
+  if hijri == nil then
+    return nil
+  end
+  local entry = cachedH(hijri.y, hijri.m)
+  if entry == nil or type(entry.days) ~= "table" then
+    return nil
+  end
+  for _, day in ipairs(entry.days) do
+    if day.hy == hijri.y and day.hm == hijri.m and day.hd == hijri.d then
+      return {
+        g = { y = day.gy, m = day.gm, d = day.gd },
+        h = {
+          y = day.hy,
+          m = day.hm,
+          d = day.hd,
+          w = day.hw,
+          name = day.hn,
+          name_en = day.hn_en,
+        },
+      }
+    end
+  end
+  return nil
 end
 
 local function hijriFull(h, g)
@@ -811,17 +867,33 @@ local function buildSwitchRow(isHijri)
 end
 
 local selectCell
-local function makeCell(cell, todayG, isHijri)
+local function makeCell(cell, todayG, todayH, isHijri)
   if cell.blank then
     return ui.column({ flexGrow = 1, height = 50 })
   end
 
-  local isToday = cell.gy == todayG.y and cell.gm == todayG.m and cell.gd == todayG.d
-  local isSelected = selected ~= nil
-    and selected.g ~= nil
-    and cell.gy == selected.g.y
-    and cell.gm == selected.g.m
-    and cell.gd == selected.g.d
+  local isToday
+  local isSelected
+  if isHijri then
+    -- "Today" in the Hijri grid follows Maghrib, like the bar. The Gregorian
+    -- grid below keeps the civil date.
+    isToday = todayH ~= nil
+      and cell.hy == todayH.y
+      and cell.hm == todayH.m
+      and cell.hd == todayH.d
+    isSelected = selected ~= nil
+      and selected.h ~= nil
+      and cell.hy == selected.h.y
+      and cell.hm == selected.h.m
+      and cell.hd == selected.h.d
+  else
+    isToday = cell.gy == todayG.y and cell.gm == todayG.m and cell.gd == todayG.d
+    isSelected = selected ~= nil
+      and selected.g ~= nil
+      and cell.gy == selected.g.y
+      and cell.gm == selected.g.m
+      and cell.gd == selected.g.d
+  end
 
   -- Retained nodes keep appearance props that a later render omits, so every
   -- cell always sets fill/border explicitly; a zero-alpha role clears them.
@@ -957,6 +1029,7 @@ render = function()
 
   local todayYear, todayMonth, todayDay = todayParts()
   local todayG = { y = todayYear, m = todayMonth, d = todayDay }
+  local todayH = isHijri and (currentHijri() or hijriForGDate(todayG)) or nil
 
   local titleText
   if isHijri then
@@ -1102,7 +1175,7 @@ render = function()
       local rowCells = {}
       for column = 0, 6 do
         local cell = cells[row * 7 + column + 1]
-        table.insert(rowCells, makeCell(cell, todayG, isHijri))
+        table.insert(rowCells, makeCell(cell, todayG, todayH, isHijri))
       end
       if mirrorRows then
         rowCells = reversed(rowCells)
@@ -1201,6 +1274,25 @@ end
 function goToday()
   local year, month, day = todayParts()
   local g = { y = year, m = month, d = day }
+  local currentH = currentHijri()
+
+  if main == "hijri" and currentH ~= nil then
+    local found = hijriCellFor(currentH)
+    selected = {
+      g = (found ~= nil and found.g) or currentHijriGregorian() or g,
+      h = (found ~= nil and found.h) or {
+        y = currentH.y,
+        m = currentH.m,
+        d = currentH.d,
+      },
+    }
+    pendingViewG = nil
+    viewYear, viewMonth = currentH.y, currentH.m
+    ensureHView(viewYear, viewMonth)
+    render()
+    return
+  end
+
   local hijri = hijriForGDate(g)
   selected = { g = g, h = hijri }
   pendingViewG = nil
@@ -1225,12 +1317,21 @@ end
 
 selectCell = function(cell)
   -- Clicking the selected day again clears the selection, so the footer goes
-  -- back to the hint and the cell loses its outline.
-  if selected ~= nil
-    and selected.g ~= nil
-    and selected.g.y == cell.gy
-    and selected.g.m == cell.gm
-    and selected.g.d == cell.gd then
+  -- back to the hint and the cell loses its outline. The Hijri grid compares
+  -- Hijri dates, the Gregorian grid Gregorian dates.
+  local sameSelection
+  if main == "hijri" and selected ~= nil and selected.h ~= nil then
+    sameSelection = selected.h.y == cell.hy
+      and selected.h.m == cell.hm
+      and selected.h.d == cell.hd
+  else
+    sameSelection = selected ~= nil
+      and selected.g ~= nil
+      and selected.g.y == cell.gy
+      and selected.g.m == cell.gm
+      and selected.g.d == cell.gd
+  end
+  if sameSelection then
     selected = nil
     pendingViewG = nil
     render()
@@ -1339,6 +1440,23 @@ noctalia.state.watch(MAIN_KEY, function(value)
   local nextMain = value == "hijri" and "hijri" or "gregorian"
   if nextMain ~= main then
     applyMain(nextMain, false)
+  end
+end)
+
+-- The service rolls the Hijri day over at Maghrib. Repaint an open panel so
+-- its Today highlight moves with the bar. The service republishes the key
+-- every minute, so only act when the day itself changes.
+noctalia.state.watch("hijri.current_h", function()
+  local current = currentHijri()
+  local key = current ~= nil
+      and string.format("%04d-%02d-%02d", current.y, current.m, current.d)
+    or ""
+  if key == lastCurrentHKey then
+    return
+  end
+  lastCurrentHKey = key
+  if isOpen then
+    render()
   end
 end)
 
