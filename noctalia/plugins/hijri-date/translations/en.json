@@ -1,4 +1,30 @@
 {
+  "month": {
+    "1": "January",
+    "2": "February",
+    "3": "March",
+    "4": "April",
+    "5": "May",
+    "6": "June",
+    "7": "July",
+    "8": "August",
+    "9": "September",
+    "10": "October",
+    "11": "November",
+    "12": "December"
+  },
+  "panel": {
+    "dir": "ltr",
+    "error": "Could not load the Hijri calendar",
+    "gregorian": "Gregorian",
+    "hijri": "Hijri",
+    "loading": "Loading…",
+    "next": "Next month",
+    "previous": "Previous month",
+    "retry": "Retry",
+    "select_day": "Select a day to see its Hijri date",
+    "today": "Today"
+  },
   "settings": {
     "latitude": {
       "description": "Latitude of the location used for prayer times and the Hijri date.",
@@ -11,6 +37,57 @@
     "method": {
       "description": "Hijri calculation method (3 = Muslim World League, 4 = Umm al-Qura).",
       "label": "Calculation method"
+    },
+    "hijri_language": {
+      "description": "Language for Hijri dates in the bar, panel and desktop widget.",
+      "label": "Hijri date language",
+      "auto": "Follow shell language",
+      "arabic": "Arabic",
+      "english": "English"
+    },
+    "display": {
+      "description": "What the bar capsule shows. The clock is always bold.",
+      "label": "Bar content",
+      "main": "Main date only",
+      "gregorian": "Gregorian date only",
+      "hijri": "Hijri date only",
+      "both": "Both dates",
+      "clock": "Clock only",
+      "clock_main": "Clock + main date",
+      "clock_gregorian": "Clock + Gregorian date",
+      "clock_hijri": "Clock + Hijri date",
+      "clock_both": "Clock + both dates"
+    },
+    "week_start": {
+      "description": "First day of the week shown in the calendar grid.",
+      "friday": "Friday",
+      "label": "Week starts on",
+      "monday": "Monday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "thursday": "Thursday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday"
     }
+  },
+  "tooltip": {
+    "gregorian": "Gregorian",
+    "hijri": "Hijri"
+  },
+  "weekday": {
+    "friday": "Fri",
+    "friday_full": "Friday",
+    "monday": "Mon",
+    "monday_full": "Monday",
+    "saturday": "Sat",
+    "saturday_full": "Saturday",
+    "sunday": "Sun",
+    "sunday_full": "Sunday",
+    "thursday": "Thu",
+    "thursday_full": "Thursday",
+    "tuesday": "Tue",
+    "tuesday_full": "Tuesday",
+    "wednesday": "Wed",
+    "wednesday_full": "Wednesday"
   }
 }

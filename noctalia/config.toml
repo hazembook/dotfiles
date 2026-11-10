@@ -36,6 +36,8 @@ margin_ends = 0
 margin_edge = 0
 margin_opposite_edge = 0
 padding = 5
+# One capsule with the clock and both dates; the built-in clock would
+# duplicate it.
 center = ["hijri-date"]
 end = [
     "tray",
@@ -69,16 +71,23 @@ stat = "cpu_usage"
 type = "sysmon"
 stat = "ram_pct"
 
-# Per-widget appearance. These are read from the widget's own settings
-# (resolveWidgetBarCapsuleSpec in config_types.cpp), so they work from the
-# config file. The running bar widget keeps its old appearance until the
-# instance is recreated (re-add it in the bar editor, or restart the shell).
+# Show only the network glyph; the SSID stays in the tooltip.
+[widget.network]
+show_label = false
+
+# One bar capsule: the clock and both dates in Amiri Bold. Left click opens the
+# calendar panel; right click flips the "main" calendar. The both-calendar
+# tooltip lives on this label because the built-in clock's tooltip is a plain
+# strftime string.
 [widget.hijri-date]
 type = "hazembook/hijri-date:date-clock-hijri"
-capsule = true
-capsule_border = "outline"
-capsule_radius = "auto"
-font_weight = 700
+display = "clock_both"
+
+# Hijri dates stay Arabic even though the shell is in English; the week
+# starts on Friday in both calendars.
+[plugin_settings."hazembook/hijri-date"]
+hijri_language = "arabic"
+week_start = "friday"
 
 [widget.screen-recorder]
 type = "noctalia/screen_recorder:recorder"

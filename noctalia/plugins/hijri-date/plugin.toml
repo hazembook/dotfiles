@@ -1,13 +1,13 @@
-plugin_api = 19
+plugin_api = 26
 id = "hazembook/hijri-date"
 name = "Hijri Date"
-version = "1.3.0"
+version = "1.8.2"
 author = "hazembook"
 license = "MIT"
 icon = "clock"
-tags = ["bar", "clock", "time"]
+tags = ["bar", "clock", "time", "calendar"]
 dependencies = []
-description = "Bar widget: the Hijri date, switching at Maghrib."
+description = "Bar date label and a two-calendar month panel, switching at Maghrib."
 
 # Plugin-level: the service does the requests, so the location lives here
 # (plugin settings are seeded into every entry).
@@ -32,14 +32,78 @@ label_key = "settings.method.label"
 description_key = "settings.method.description"
 default = "3"
 
+# First day of the week in the calendar grid. Friday is the default because
+# the Hijri week starts on Friday.
+[[setting]]
+key = "week_start"
+type = "select"
+label_key = "settings.week_start.label"
+description_key = "settings.week_start.description"
+default = "friday"
+options = [
+  { value = "friday", label_key = "settings.week_start.friday" },
+  { value = "saturday", label_key = "settings.week_start.saturday" },
+  { value = "sunday", label_key = "settings.week_start.sunday" },
+  { value = "monday", label_key = "settings.week_start.monday" },
+  { value = "tuesday", label_key = "settings.week_start.tuesday" },
+  { value = "wednesday", label_key = "settings.week_start.wednesday" },
+  { value = "thursday", label_key = "settings.week_start.thursday" },
+]
+
+# Hijri dates can stay in Arabic even when the shell language is English.
+[[setting]]
+key = "hijri_language"
+type = "select"
+label_key = "settings.hijri_language.label"
+description_key = "settings.hijri_language.description"
+default = "auto"
+options = [
+  { value = "auto", label_key = "settings.hijri_language.auto" },
+  { value = "arabic", label_key = "settings.hijri_language.arabic" },
+  { value = "english", label_key = "settings.hijri_language.english" },
+]
+
 [[widget]]
 id = "date-clock-hijri"
 entry = "hijri_date_widget.luau"
+
+  # What the bar capsule shows. The whole capsule uses Amiri Bold when it is
+  # installed. `main` follows the shared Gregorian/Hijri choice toggled by a
+  # right click; the explicit modes pin one date or show both.
+  [[widget.setting]]
+  key = "display"
+  type = "select"
+  label_key = "settings.display.label"
+  description_key = "settings.display.description"
+  default = "main"
+  options = [
+    { value = "main", label_key = "settings.display.main" },
+    { value = "gregorian", label_key = "settings.display.gregorian" },
+    { value = "hijri", label_key = "settings.display.hijri" },
+    { value = "both", label_key = "settings.display.both" },
+    { value = "clock", label_key = "settings.display.clock" },
+    { value = "clock_main", label_key = "settings.display.clock_main" },
+    { value = "clock_gregorian", label_key = "settings.display.clock_gregorian" },
+    { value = "clock_hijri", label_key = "settings.display.clock_hijri" },
+    { value = "clock_both", label_key = "settings.display.clock_both" },
+  ]
 
 # Desktop / lock-screen widget: the same Hijri date, without the clock.
 [[desktop_widget]]
 id = "hijri-date"
 entry = "hijri_date_desktop.luau"
+
+# Calendar panel: a month grid that can be anchored to either calendar.
+# Opened by the bar date label, the clock, or:
+#   noctalia msg panel-toggle hazembook/hijri-date:calendar
+[[panel]]
+id = "calendar"
+entry = "hijri_date_panel.luau"
+width = 400
+height = 520
+placement = "attached"
+position = "center"
+open_near_click = false
 
 # Background service: owns the aladhan.com requests and publishes the date
 # that is currently valid to the widget.
