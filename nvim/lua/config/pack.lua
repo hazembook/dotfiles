@@ -190,21 +190,34 @@ end
 -- picker
 do
   require("telescope").setup({
+    defaults = {
+      -- `rg --hidden` also walks .git; keep the object store out of the picker.
+      file_ignore_patterns = { "^%.git/" },
+    },
     extensions = { fzf = {} },
   })
   pcall(require("telescope").load_extension, "fzf")
 
   local builtin = require("telescope.builtin")
-  vim.keymap.set("n", "<leader>ff", builtin.find_files, {})
+
+  -- Dotfiles such as .bashrc are normal tracked files, not editor noise.
+  local function find_files(opts)
+    opts = vim.tbl_extend("force", { hidden = true }, opts or {})
+    builtin.find_files(opts)
+  end
+
+  vim.keymap.set("n", "<leader>ff", function() find_files() end, {
+    desc = "Find files (including hidden)",
+  })
   vim.keymap.set("n", "<leader>fb", builtin.buffers, {})
   vim.keymap.set("n", "<leader>fh", builtin.help_tags, {})
   vim.keymap.set("n", "<C-g>", builtin.git_files, {})
 
   vim.keymap.set("n", "<space>en", function()
-    builtin.find_files({ cwd = vim.fn.stdpath("config") })
+    find_files({ cwd = vim.fn.stdpath("config") })
   end)
   vim.keymap.set("n", "<space>ep", function()
-    builtin.find_files({ cwd = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "core", "opt") })
+    find_files({ cwd = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "core", "opt") })
   end)
 
   require("config.telescope.multigrep").setup()
