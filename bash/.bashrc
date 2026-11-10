@@ -209,7 +209,8 @@ if command -v xbps-install &>/dev/null; then
 elif command -v pacman &>/dev/null; then
     # --- Arch Linux ---
     alias i="doas pacman -S --needed"
-    alias u="doas pacman -Syu"
+    alias u="doas pacman -Sy"
+    alias uy="doas pacman -Syu"
     alias r="doas pacman -Rns"
     alias q="doas pacman -Ss"
     alias Q="doas pacman -Qs"
