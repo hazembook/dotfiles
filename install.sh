@@ -4,7 +4,40 @@ set -euo pipefail
 DOTS="$(cd "$(dirname "$0")" && pwd)"
 BACKUP_DIR="$HOME/backups/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 
-# Backup real files/dirs before replacing them with symlinks
+is_termux() {
+    [[ -n "${TERMUX_VERSION:-}" || -d "/data/data/com.termux/files/usr" ]]
+}
+
+# Format: "type|src_relative_to_DOTS|target_absolute"
+COMMON_LINKS=(
+    "file|bash/.bashrc|$HOME/.bashrc"
+    "file|fish/config.fish|$HOME/.config/fish/config.fish"
+    "dir|nvim|$HOME/.config/nvim"
+    "dir|doom|$HOME/.config/doom"
+    "dir|fastfetch|$HOME/.config/fastfetch"
+    "file|tmux/.tmux.conf|$HOME/.tmux.conf"
+    "file|tmux.conf.local|$HOME/.tmux.conf.local"
+    "file|git/config|$HOME/.config/git/config"
+)
+
+DESKTOP_LINKS=(
+    "dir|niri|$HOME/.config/niri"
+    "dir|noctalia|$HOME/.config/noctalia"
+    "dir|mango|$HOME/.config/mango"
+    "dir|mangobar|$HOME/.config/mangobar"
+    "file|ghostty/config|$HOME/.config/ghostty/config"
+    "file|alacritty/alacritty.toml|$HOME/.config/alacritty/alacritty.toml"
+    "dir|alacritty/themes|$HOME/.config/alacritty/themes"
+    "dir|rofi|$HOME/.config/rofi"
+    "file|zed/settings.json|$HOME/.config/zed/settings.json"
+    "file|zed/keymap.json|$HOME/.config/zed/keymap.json"
+)
+
+ACTIVE_LINKS=("${COMMON_LINKS[@]}")
+if ! is_termux; then
+    ACTIVE_LINKS+=("${DESKTOP_LINKS[@]}")
+fi
+
 backup_item() {
     local target="$1"
     if [[ -e "$target" && ! -L "$target" ]]; then
@@ -14,47 +47,20 @@ backup_item() {
     fi
 }
 
-# Directory symlink: backup, remove real dir, then link
-link_dir() {
-    local src="$1" target="$2"
+link_entry() {
+    local kind="$1" src="$DOTS/$2" target="$3"
+    mkdir -p "$(dirname "$target")"
     backup_item "$target"
-    rm -rf "$target"
-    ln -sf "$src" "$target"
+    if [[ "$kind" == "dir" ]]; then
+        rm -rf "$target"
+    fi
+    ln -sfn "$src" "$target"
 }
 
-# File symlink: backup real file, then force-link
-link_file() {
-    local src="$1" target="$2"
-    backup_item "$target"
-    ln -sf "$src" "$target"
-}
-
-# Every path this script manages, so --check can verify them.
-MANAGED_TARGETS=(
-    "$HOME/.bashrc"
-    "$HOME/.config/fish/config.fish"
-    "$HOME/.config/nvim"
-    "$HOME/.config/niri"
-    "$HOME/.config/noctalia"
-    "$HOME/.config/doom"
-    "$HOME/.config/mango"
-    "$HOME/.config/mangobar"
-    "$HOME/.config/ghostty/config"
-    "$HOME/.config/alacritty/alacritty.toml"
-    "$HOME/.config/alacritty/themes"
-    "$HOME/.config/fastfetch"
-    "$HOME/.config/rofi"
-    "$HOME/.config/zed/settings.json"
-    "$HOME/.config/zed/keymap.json"
-    "$HOME/.tmux.conf"
-    "$HOME/.tmux.conf.local"
-    "$HOME/.gitconfig"
-)
-
-# Report managed paths that are gone, and symlinks whose target moved.
 check_links() {
-    local bad=0
-    for target in "${MANAGED_TARGETS[@]}"; do
+    local bad=0 entry kind src target
+    for entry in "${ACTIVE_LINKS[@]}"; do
+        IFS='|' read -r kind src target <<< "$entry"
         if [[ -L "$target" ]]; then
             if [[ ! -e "$target" ]]; then
                 echo "  BROKEN: $target -> $(readlink "$target")"
@@ -79,34 +85,12 @@ if [[ "${1:-}" == "--check" ]]; then
     exit $?
 fi
 
-echo "Installing dotfiles to $HOME ..."
+echo "Installing dotfiles to $HOME ($(is_termux && echo 'Termux' || echo 'Linux')) ..."
 
-mkdir -p "$HOME/.config/fish"
-mkdir -p "$HOME/.config/ghostty"
-mkdir -p "$HOME/.config/alacritty"
-mkdir -p "$HOME/.config/zed"
-mkdir -p "$HOME/.config/mango/scripts"
-mkdir -p "$HOME/.config/mangobar"
-
-link_file "$DOTS/bash/.bashrc"         "$HOME/.bashrc"
-link_file "$DOTS/fish/config.fish"     "$HOME/.config/fish/config.fish"
-link_dir  "$DOTS/nvim"                 "$HOME/.config/nvim"
-link_dir  "$DOTS/niri"                 "$HOME/.config/niri"
-link_dir  "$DOTS/noctalia"             "$HOME/.config/noctalia"
-link_dir  "$DOTS/doom"                 "$HOME/.config/doom"
-link_dir  "$DOTS/mango"                "$HOME/.config/mango"
-link_dir  "$DOTS/mangobar"             "$HOME/.config/mangobar"
-link_file "$DOTS/ghostty/config"       "$HOME/.config/ghostty/config"
-link_file "$DOTS/alacritty/alacritty.toml"  "$HOME/.config/alacritty/alacritty.toml"
-link_dir  "$DOTS/alacritty/themes"     "$HOME/.config/alacritty/themes"
-link_dir  "$DOTS/fastfetch"            "$HOME/.config/fastfetch"
-link_dir  "$DOTS/rofi"                 "$HOME/.config/rofi"
-link_file "$DOTS/zed/settings.json"    "$HOME/.config/zed/settings.json"
-link_file "$DOTS/zed/keymap.json"      "$HOME/.config/zed/keymap.json"
-
-link_file "$DOTS/tmux/.tmux.conf"      "$HOME/.tmux.conf"
-link_file "$DOTS/tmux.conf.local"      "$HOME/.tmux.conf.local"
-link_file "$DOTS/git/.gitconfig"       "$HOME/.gitconfig"
+for entry in "${ACTIVE_LINKS[@]}"; do
+    IFS='|' read -r kind src target <<< "$entry"
+    link_entry "$kind" "$src" "$target"
+done
 
 echo "Done!"
 if [[ -d "$BACKUP_DIR" ]]; then
