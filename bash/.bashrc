@@ -48,6 +48,18 @@ if [ -z "${JAVA_HOME-}" ]; then
     unset _java_path
 fi
 
+# Sync Wayland/X11 session env when connecting over SSH
+if [ -n "${SSH_CONNECTION-}" ] && command -v systemctl >/dev/null 2>&1 && [ -z "${WAYLAND_DISPLAY-}" ] && [ -z "${DISPLAY-}" ]; then
+    while IFS='=' read -r _env_key _env_val; do
+        case "$_env_key" in
+        DISPLAY | WAYLAND_DISPLAY | NIRI_SOCKET | XDG_CURRENT_DESKTOP | XDG_SESSION_TYPE)
+            export "$_env_key=$_env_val"
+            ;;
+        esac
+    done < <(systemctl --user show-environment 2>/dev/null)
+    unset _env_key _env_val
+fi
+
 # --- 2. SHELL OPTIONS & BEHAVIOR ---
 set -o vi # Enable vi mode keybindings
 

@@ -440,7 +440,7 @@ bind -n M-7 select-window -t 7
 bind -n M-8 select-window -t 8
 bind -n M-9 select-window -t 9
 
-set-option -g update-environment "DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP"
+set-option -g update-environment "DISPLAY WAYLAND_DISPLAY NIRI_SOCKET SWAYSOCK XDG_CURRENT_DESKTOP XDG_SESSION_TYPE"
 
 set -g extended-keys-format csi-u
 

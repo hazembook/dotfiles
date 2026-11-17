@@ -43,6 +43,17 @@ if not set -q JAVA_HOME
     end
 end
 
+# Sync Wayland/X11 session env when connecting over SSH
+if set -q SSH_CONNECTION; and command -q systemctl; and not set -q WAYLAND_DISPLAY; and not set -q DISPLAY
+    for line in (systemctl --user show-environment 2>/dev/null)
+        set -l kv (string split -m 1 '=' -- $line)
+        switch $kv[1]
+            case DISPLAY WAYLAND_DISPLAY NIRI_SOCKET XDG_CURRENT_DESKTOP XDG_SESSION_TYPE
+                set -gx $kv[1] $kv[2]
+        end
+    end
+end
+
 # --- 3. SAFE PATH MANAGEMENT ---
 function add_to_path
     for dir in $argv
