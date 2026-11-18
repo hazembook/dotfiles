@@ -92,7 +92,6 @@ add_to_path "$HOME/.cargo/bin"
 add_to_path "$HOME/.config/emacs/bin"
 add_to_path "$HOME/.pub-cache/bin"
 add_to_path "$HOME/.local/share/JetBrains/Toolbox/scripts"
-add_to_path "$HOME/.atuin/bin"
 add_to_path "$HOME/.turso"
 add_to_path "$HOME/.turso/bin"
 
@@ -500,8 +499,8 @@ cpp_watch() {
 [ -x "$(command -v starship)" ] && eval "$(starship init bash)"
 [ -x "$(command -v zoxide)" ] && eval "$(zoxide init bash)"
 [ -x "$(command -v fnm)" ] && eval "$(fnm env --use-on-cd)"
-[ -x "$(command -v atuin)" ] && eval "$(atuin init bash --disable-up-arrow)"
 [ -x "$(command -v pipx)" ] && eval "$(register-python-argcomplete pipx)"
 # shellcheck source=/dev/null
 [ -x "$(command -v jj)" ] && source <(jj util completion bash)
 if command -v mise &>/dev/null; then eval "$(mise activate bash)"; fi
+[ -x "$(command -v atuin)" ] && eval "$(atuin init bash --disable-up-arrow)"

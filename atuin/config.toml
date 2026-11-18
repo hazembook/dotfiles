@@ -1,0 +1,11 @@
+## Atuin Configuration
+## Managed by dotfiles (~/.config/atuin/config.toml)
+
+# When accepting a selected command from search, immediately execute it
+enter_accept = true
+
+# Use fuzzy search mode by default
+# search_mode = "fuzzy"
+
+# Disable update checks (managed via package manager)
+update_check = false

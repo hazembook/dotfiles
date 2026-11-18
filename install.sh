@@ -18,6 +18,7 @@ COMMON_LINKS=(
     "file|tmux/.tmux.conf|$HOME/.tmux.conf"
     "file|tmux.conf.local|$HOME/.tmux.conf.local"
     "file|git/config|$HOME/.config/git/config"
+    "file|atuin/config.toml|$HOME/.config/atuin/config.toml"
 )
 
 DESKTOP_LINKS=(

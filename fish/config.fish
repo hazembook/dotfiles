@@ -71,7 +71,6 @@ add_to_path "$HOME/.cargo/bin"
 add_to_path "$HOME/.config/emacs/bin"
 add_to_path "$HOME/.pub-cache/bin"
 add_to_path "$HOME/.local/share/JetBrains/Toolbox/scripts"
-add_to_path "$HOME/.atuin/bin"
 add_to_path "$HOME/.turso"
 add_to_path "$HOME/.turso/bin"
 
@@ -467,7 +466,7 @@ fish_vi_key_bindings
 if command -v starship &> /dev/null; starship init fish | source; end
 if command -v zoxide &> /dev/null; zoxide init fish | source; end
 if command -v fnm &> /dev/null; fnm env --use-on-cd | source; end
-if command -v atuin &> /dev/null; atuin init fish --disable-up-arrow | source; end
 if command -v pipx &> /dev/null; register-python-argcomplete --shell fish pipx | source; end
 if command -v jj &> /dev/null; jj util completion fish | source; end
 if command -v mise &> /dev/null; mise activate fish | source; end
+if command -v atuin &> /dev/null; atuin init fish --disable-up-arrow | source; end
