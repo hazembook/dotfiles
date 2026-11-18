@@ -20,6 +20,7 @@ For non-Nix systems, run `install.sh` to symlink everything into `$HOME`:
 | `ghostty/`  | `~/.config/ghostty/config`      |
 | `alacritty/`| `~/.config/alacritty/`          |
 | `fastfetch/`| `~/.config/fastfetch/`          |
+| `opencode/` | `~/.config/opencode/`           |
 | `tmux/`     | submodule — gpakosz/.tmux       |
 | `tmux.conf.local` | `~/.tmux.conf.local`      |
 

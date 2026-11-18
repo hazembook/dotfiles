@@ -32,10 +32,21 @@ DESKTOP_LINKS=(
     "dir|rofi|$HOME/.config/rofi"
     "file|zed/settings.json|$HOME/.config/zed/settings.json"
     "file|zed/keymap.json|$HOME/.config/zed/keymap.json"
+    "file|opencode/opencode.json|$HOME/.config/opencode/opencode.json"
+    "file|opencode/cli.json|$HOME/.config/opencode/cli.json"
+    "file|opencode/AGENTS.md|$HOME/.config/opencode/AGENTS.md"
+    "dir|opencode/agents|$HOME/.config/opencode/agents"
+)
+
+TERMUX_LINKS=(
+    # Add Termux-only links here if needed, e.g.:
+    # "file|termux/termux.properties|$HOME/.termux/termux.properties"
 )
 
 ACTIVE_LINKS=("${COMMON_LINKS[@]}")
-if ! is_termux; then
+if is_termux; then
+    ACTIVE_LINKS+=("${TERMUX_LINKS[@]}")
+else
     ACTIVE_LINKS+=("${DESKTOP_LINKS[@]}")
 fi
 
