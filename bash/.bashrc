@@ -105,7 +105,10 @@ fi
 # --- Variable-Dependent Paths (Guarded against empty vars) ---
 [ -n "$FLUTTER_ROOT" ] && add_to_path "$FLUTTER_ROOT/bin"
 [ -n "$BUN_INSTALL" ] && add_to_path "$BUN_INSTALL/bin"
-[ -n "$PNPM_HOME" ] && add_to_path "$PNPM_HOME"
+if [ -n "$PNPM_HOME" ]; then
+    add_to_path "$PNPM_HOME"
+    add_to_path "$PNPM_HOME/bin"
+fi
 [ -n "$JAVA_HOME" ] && add_to_path "$JAVA_HOME/bin"
 
 # --- Android SDK ---

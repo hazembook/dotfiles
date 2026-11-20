@@ -85,7 +85,10 @@ end
 # --- Variable-Dependent Paths (Guarded against empty vars) ---
 if set -q FLUTTER_ROOT; add_to_path "$FLUTTER_ROOT/bin"; end
 if set -q BUN_INSTALL;  add_to_path "$BUN_INSTALL/bin";  end
-if set -q PNPM_HOME;    add_to_path "$PNPM_HOME";        end
+if set -q PNPM_HOME
+    add_to_path "$PNPM_HOME"
+    add_to_path "$PNPM_HOME/bin"
+end
 if set -q JAVA_HOME;    add_to_path "$JAVA_HOME/bin";    end
 
 # --- Android SDK ---
