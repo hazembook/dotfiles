@@ -1,4 +1,4 @@
-# Core CLI tools for Termux (Android)
+# Termux core terminal & dev tools
 fish
 starship
 atuin
@@ -14,9 +14,10 @@ git
 fastfetch
 tree
 curl
-# Neovim build, parsers, clipboard & terminal info
-clang
-make
+nala
+
+# Development & Neovim build dependencies
+build-essential
 termux-api
 nodejs-lts
 ncurses-utils
