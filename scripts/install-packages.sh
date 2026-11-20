@@ -55,18 +55,19 @@ usage() {
 Usage: $(basename "$0") [OPTIONS]
 
 Install package dependencies required by this dotfiles repository.
+By default, automatically detects your environment (Termux, Desktop, or Headless).
 
 Options:
-  --cli         Install core terminal tools only (fish, starship, neovim, etc.) [default]
-  --desktop     Install core tools + desktop/Wayland environment (niri, ghostty, etc.)
-  --all         Install all available packages for the detected system
+  --cli         Force core terminal tools only (fish, starship, neovim, etc.)
+  --desktop     Force core tools + desktop/Wayland environment (niri, ghostty, etc.)
+  --all         Install all available packages for the detected environment
   --dry-run     Print commands and packages without installing
   -h, --help    Show this help message
 EOF
 }
 
 # Parse options
-MODE="cli"
+MODE=""
 DRY_RUN=false
 
 while [[ $# -gt 0 ]]; do
@@ -101,6 +102,20 @@ if is_nixos; then
     echo "Packages are managed declaratively via your nixos-config repository."
     echo "Please apply packages via: nixos-rebuild switch --flake <flake-path>"
     exit 0
+fi
+
+# Auto-detect mode if not explicitly set
+if [[ -z "$MODE" ]]; then
+    if is_termux; then
+        MODE="cli"
+        log_info "Auto-detected environment: Termux (CLI mode)"
+    elif [[ -n "${WAYLAND_DISPLAY:-}" || -n "${DISPLAY:-}" || -n "${XDG_CURRENT_DESKTOP:-}" ]]; then
+        MODE="desktop"
+        log_info "Auto-detected environment: Graphical Desktop (Desktop mode)"
+    else
+        MODE="cli"
+        log_info "Auto-detected environment: Headless / TTY (CLI mode)"
+    fi
 fi
 
 # Elevation helper (doas / sudo)

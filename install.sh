@@ -24,8 +24,6 @@ COMMON_LINKS=(
 DESKTOP_LINKS=(
     "dir|niri|$HOME/.config/niri"
     "dir|noctalia|$HOME/.config/noctalia"
-    "dir|mango|$HOME/.config/mango"
-    "dir|mangobar|$HOME/.config/mangobar"
     "file|ghostty/config|$HOME/.config/ghostty/config"
     "file|alacritty/alacritty.toml|$HOME/.config/alacritty/alacritty.toml"
     "dir|alacritty/themes|$HOME/.config/alacritty/themes"
@@ -69,8 +67,16 @@ link_entry() {
     ln -sfn "$src" "$target"
 }
 
+init_submodules() {
+    if [[ ! -f "$DOTS/tmux/.tmux.conf" ]]; then
+        echo "Initializing git submodules (tmux)..."
+        git -C "$DOTS" submodule update --init --recursive
+    fi
+}
+
 check_links() {
     local bad=0 entry kind src target
+    init_submodules
     for entry in "${ACTIVE_LINKS[@]}"; do
         IFS='|' read -r kind src target <<< "$entry"
         if [[ -L "$target" ]]; then
@@ -117,6 +123,8 @@ if [[ "${1:-}" == "--check" ]]; then
 fi
 
 echo "Installing dotfiles to $HOME ($(is_termux && echo 'Termux' || echo 'Linux')) ..."
+
+init_submodules
 
 for entry in "${ACTIVE_LINKS[@]}"; do
     IFS='|' read -r kind src target <<< "$entry"

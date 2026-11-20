@@ -18,3 +18,6 @@ wl-clipboard
 xsel
 xclip
 libnotify
+# Neovim build, treesitter & core development
+base-devel
+curl

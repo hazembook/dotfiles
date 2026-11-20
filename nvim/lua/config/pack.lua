@@ -87,9 +87,6 @@ vim.pack.add({
   gh("lervag/vimtex"),
   gh("yousefhadder/markdown-plus.nvim"),
   gh("adibhanna/nvim-notes"),
-
-  -- AI completion (inline suggestions; blink.cmp handles the popup menu)
-  gh("supermaven-inc/supermaven-nvim"),
 })
 
 -- markdown-preview.nvim: loaded lazily, in markdown buffers only (per its
@@ -223,7 +220,7 @@ do
   require("config.telescope.multigrep").setup()
 end
 
--- completion menu (popup); supermaven below handles inline suggestions
+-- completion menu (popup)
 require("blink.cmp").setup({
   keymap = { preset = "default" },
   appearance = { nerd_font_variant = "mono" },
@@ -333,9 +330,3 @@ vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 
 -- notes
 require("nvim-notes").setup({ vault_path = "~/notes" })
-
--- AI inline suggestions (accept on <C-v>; no conflict with blink.cmp's
--- default preset, which uses <C-space>/<C-e>/<C-y>/<C-p>/<C-n>)
-require("supermaven-nvim").setup({
-  keymaps = { accept_suggestion = "<C-v>" },
-})

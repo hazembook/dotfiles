@@ -14,3 +14,9 @@ git
 fastfetch
 tree
 curl
+# Neovim build, parsers, clipboard & terminal info
+clang
+make
+termux-api
+nodejs-lts
+ncurses-utils

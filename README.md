@@ -9,16 +9,17 @@ For non-Nix systems, run `install.sh` to symlink everything into `$HOME`:
 
 ### Package Dependencies (Fresh Install)
 
-To install the packages required by these dotfiles on a fresh machine (supports **Arch / CachyOS** and **Termux**):
+To install the packages required by these dotfiles on a fresh machine (supports **Arch / CachyOS** and **Termux** with auto-environment detection):
 
-    # Install core CLI tools (fish, starship, atuin, neovim, tmux, etc.)
-    ./install.sh --packages --cli
+    # Automatically detects environment (Termux, Desktop, or Headless) and installs:
+    ./install.sh --packages
 
-    # Install core CLI tools + Desktop environment (niri, ghostty, rofi, etc.)
-    ./install.sh --packages --desktop
-
-    # Preview packages without installing
+    # Preview packages without installing:
     ./install.sh --packages --dry-run
+
+    # Or explicitly force a specific tier:
+    ./install.sh --packages --cli
+    ./install.sh --packages --desktop
 
 *(Alternatively, run `./scripts/install-packages.sh` directly).*
 
