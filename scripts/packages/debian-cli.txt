@@ -1,0 +1,26 @@
+# Build essentials & package management for Debian/Ubuntu
+build-essential
+nala
+curl
+wget
+
+# Core shell & multiplexer
+fish
+tmux
+git
+neovim
+
+# Search & navigation
+fzf
+ripgrep
+fd-find
+bat
+trash-cli
+tree
+zoxide
+
+# Clipboard & desktop notifications
+wl-clipboard
+xsel
+xclip
+libnotify-bin

@@ -9,7 +9,7 @@ For non-Nix systems, run `install.sh` to symlink everything into `$HOME`:
 
 ### Package Dependencies (Fresh Install)
 
-To install the packages required by these dotfiles on a fresh machine (supports **Arch / CachyOS** and **Termux** with auto-environment detection):
+To install the packages required by these dotfiles on a fresh machine (supports **Arch / CachyOS**, **Debian / Ubuntu**, and **Termux** with auto-environment detection):
 
     # Automatically detects environment (Termux, Desktop, or Headless) and installs:
     ./install.sh --packages

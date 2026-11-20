@@ -195,7 +195,55 @@ if command -v pacman &>/dev/null; then
     exit 0
 fi
 
-# --- 3. OTHER DISTRIBUTIONS ---
+# --- 3. DEBIAN / UBUNTU ---
+if command -v apt &>/dev/null; then
+    log_info "Detected distribution: Debian / Ubuntu (apt)"
+
+    PKG_MANAGER="apt"
+    if command -v nala &>/dev/null; then
+        PKG_MANAGER="nala"
+        log_info "Using apt frontend: nala"
+    fi
+
+    CLI_PKGS=$(load_packages "$PACKAGES_DIR/debian-cli.txt")
+    log_info "Mode: $MODE"
+    log_info "Target packages: $CLI_PKGS"
+
+    if [[ "$DRY_RUN" == true ]]; then
+        echo "[dry-run] ${ELEVATE:+$ELEVATE }$PKG_MANAGER update"
+        echo "[dry-run] ${ELEVATE:+$ELEVATE }$PKG_MANAGER install -y $CLI_PKGS"
+    else
+        log_info "Updating package lists..."
+        # shellcheck disable=SC2086
+        ${ELEVATE:+$ELEVATE }$PKG_MANAGER update
+        log_info "Installing packages..."
+        # shellcheck disable=SC2086
+        ${ELEVATE:+$ELEVATE }$PKG_MANAGER install -y $CLI_PKGS
+
+        # Symlink batcat -> bat and fdfind -> fd into ~/.local/bin if needed
+        mkdir -p "$HOME/.local/bin"
+        if command -v batcat &>/dev/null && ! command -v bat &>/dev/null; then
+            ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
+            log_info "Symlinked batcat -> ~/.local/bin/bat"
+        fi
+        if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
+            ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
+            log_info "Symlinked fdfind -> ~/.local/bin/fd"
+        fi
+
+        log_success "Debian/Ubuntu packages successfully installed!"
+    fi
+
+    # Offer/Check mise installation
+    if ! command -v mise &>/dev/null; then
+        echo ""
+        log_info "Note: 'mise' (runtime manager) is not currently installed."
+        echo "To install mise, run: curl https://mise.run | sh"
+    fi
+    exit 0
+fi
+
+# --- 4. OTHER DISTRIBUTIONS ---
 log_error "Unsupported distribution for automated package installation."
 echo "Please manually install the required packages listed in: $PACKAGES_DIR/"
 exit 1
