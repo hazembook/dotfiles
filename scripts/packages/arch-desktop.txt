@@ -1,0 +1,11 @@
+# Desktop environment & Wayland tools for Arch/CachyOS
+niri
+ghostty
+alacritty
+rofi-wayland
+grim
+slurp
+brightnessctl
+wireplumber
+ttf-meslo-nerd
+ttf-nerd-fonts-symbols

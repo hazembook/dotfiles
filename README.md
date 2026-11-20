@@ -7,6 +7,21 @@ For non-Nix systems, run `install.sh` to symlink everything into `$HOME`:
     cd ~/.dots
     ./install.sh
 
+### Package Dependencies (Fresh Install)
+
+To install the packages required by these dotfiles on a fresh machine (supports **Arch / CachyOS** and **Termux**):
+
+    # Install core CLI tools (fish, starship, atuin, neovim, tmux, etc.)
+    ./install.sh --packages --cli
+
+    # Install core CLI tools + Desktop environment (niri, ghostty, rofi, etc.)
+    ./install.sh --packages --desktop
+
+    # Preview packages without installing
+    ./install.sh --packages --dry-run
+
+*(Alternatively, run `./scripts/install-packages.sh` directly).*
+
 ### What's here
 
 | Directory   | Target                          |

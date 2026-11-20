@@ -1,0 +1,16 @@
+# Core CLI tools for Termux (Android)
+fish
+starship
+atuin
+zoxide
+fzf
+lsd
+bat
+ripgrep
+fd
+neovim
+tmux
+git
+fastfetch
+tree
+curl

@@ -91,6 +91,25 @@ check_links() {
     return $bad
 }
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Symlink dotfiles into \$HOME.
+
+Options:
+  --check               Verify status of all managed symlinks
+  --packages, -p [...]  Install package dependencies via scripts/install-packages.sh
+  -h, --help            Show this help message
+EOF
+    exit 0
+fi
+
+if [[ "${1:-}" == "--packages" || "${1:-}" == "-p" ]]; then
+    shift
+    exec "$DOTS/scripts/install-packages.sh" "$@"
+fi
+
 if [[ "${1:-}" == "--check" ]]; then
     echo "Checking dotfiles links in $HOME ..."
     check_links
