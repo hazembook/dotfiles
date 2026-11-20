@@ -38,9 +38,9 @@
       "rev": "adb063144700fa4c3d2cdf3997f48e34f74d5dd2",
       "src": "https://github.com/yousefhadder/markdown-plus.nvim"
     },
-    "markdown-preview.nvim": {
-      "rev": "a923f5fc5ba36a3b17e289dc35dc17f66d0548ee",
-      "src": "https://github.com/iamcco/markdown-preview.nvim"
+    "markview.nvim": {
+      "rev": "a6dbc5a4a4828b474c81fbcec11546cbd9000e3b",
+      "src": "https://github.com/OXY2DEV/markview.nvim"
     },
     "mini.icons": {
       "rev": "f642e3ba8c12afbc8f32f6d77ef6597eac56786f",

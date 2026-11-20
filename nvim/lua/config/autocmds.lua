@@ -53,3 +53,16 @@ vim.api.nvim_create_autocmd("FileType", {
     pcall(vim.treesitter.start, args.buf)
   end,
 })
+
+-- In-buffer rendering conceal & buffer-local keymaps (Markdown, Typst, LaTeX)
+vim.api.nvim_create_autocmd("FileType", {
+  desc = "Enable conceallevel and buffer keymaps for markup rendering",
+  group = vim.api.nvim_create_augroup("markup-conceal", { clear = true }),
+  pattern = { "markdown", "typst", "tex", "latex" },
+  callback = function(args)
+    vim.opt_local.conceallevel = 2
+
+    vim.keymap.set("n", "<leader>mt", "<cmd>Markview toggle<cr>", { buffer = args.buf, desc = "Toggle markup preview" })
+    vim.keymap.set("n", "<leader>ms", "<cmd>Markview splitToggle<cr>", { buffer = args.buf, desc = "Toggle splitview markup preview" })
+  end,
+})

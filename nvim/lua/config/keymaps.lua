@@ -62,3 +62,7 @@ vim.keymap.set("n", "<leader>`", "i```<CR>```<ESC>kA", {
 vim.keymap.set("i", "<m-`>", "```<CR>```<ESC>kA", {
   desc = "Insert markdown code block for language"
 })
+
+-- Toggle in-buffer markup preview (Markview)
+vim.keymap.set("n", "<leader>mt", "<cmd>Markview toggle<cr>", { desc = "Toggle markup preview" })
+vim.keymap.set("n", "<leader>ms", "<cmd>Markview splitToggle<cr>", { desc = "Toggle splitview markup preview" })

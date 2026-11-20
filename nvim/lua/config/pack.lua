@@ -27,14 +27,6 @@ vim.api.nvim_create_autocmd("PackChanged", {
       if not ok then
         vim.notify("nvim-treesitter: update failed: " .. tostring(err), vim.log.levels.WARN)
       end
-    elseif name == "markdown-preview.nvim" then
-      -- Check rtp, not ev.data.active: with a custom `load` function the
-      -- plugin is registered as active without being loaded, and the
-      -- autoload call below needs it on rtp to work.
-      if not vim.tbl_contains(vim.api.nvim_list_runtime_paths(), ev.data.path) then
-        vim.cmd.packadd("markdown-preview.nvim")
-      end
-      pcall(vim.fn["mkdp#util#install"])
     end
   end,
 })
@@ -87,24 +79,7 @@ vim.pack.add({
   gh("lervag/vimtex"),
   gh("yousefhadder/markdown-plus.nvim"),
   gh("adibhanna/nvim-notes"),
-})
-
--- markdown-preview.nvim: loaded lazily, in markdown buffers only (per its
--- README). `load` must be an add() option, not a spec field — a function
--- takes full responsibility for loading, keeping the plugin off
--- runtimepath until the FileType autocmd fires.
-vim.pack.add({
-  gh("iamcco/markdown-preview.nvim"),
-}, {
-  load = function()
-    vim.api.nvim_create_autocmd("FileType", {
-      pattern = "markdown",
-      once = true,
-      callback = function()
-        vim.cmd.packadd("markdown-preview.nvim")
-      end,
-    })
-  end,
+  gh("OXY2DEV/markview.nvim"),
 })
 
 -- ---------------------------------------------------------------------------
@@ -265,6 +240,7 @@ pcall(function()
     "html",
     "javascript",
     "json",
+    "latex",
     "lua",
     "markdown",
     "markdown_inline",
@@ -309,8 +285,18 @@ do
   vim.keymap.set("n", "<leader>dr", "<cmd>DapViewToggle<cr>", { desc = "Toggle debugger view" })
 end
 
--- markdown
+-- markdown editing helpers
 require("markdown-plus").setup({})
+
+-- markview.nvim (Markdown, Typst, LaTeX in-buffer preview)
+pcall(function()
+  require("markview").setup({
+    preview = {
+      filetypes = { "markdown", "typst", "latex" },
+      icon_provider = "mini",
+    },
+  })
+end)
 
 -- latex
 vim.g.vimtex_view_method = "zathura"
