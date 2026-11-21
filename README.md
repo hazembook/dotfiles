@@ -5,7 +5,15 @@ For non-Nix systems, run `install.sh` to symlink everything into `$HOME`:
 
     git clone --recursive git@codeberg.org:hazembook/dotfiles.git ~/.dots
     cd ~/.dots
+
+    # Deploy symlinks to $HOME:
     ./install.sh
+
+    # Preview symlink actions without modifying the filesystem:
+    ./install.sh --dry-run
+
+    # Verify status and health of all managed symlinks:
+    ./install.sh --check
 
 ### Package Dependencies (Fresh Install)
 
