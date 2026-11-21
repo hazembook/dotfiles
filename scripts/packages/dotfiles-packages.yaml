@@ -1,0 +1,209 @@
+# =============================================================================
+#  Hazem's Dotfiles Package Inventory
+#  Declarative multi-platform package specifications
+# =============================================================================
+
+modules:
+  # Core terminal & navigation tools
+  core:
+    description: "Core shell, multiplexer, and terminal utilities"
+    packages:
+      fish:
+        arch: fish
+        debian: fish
+        termux: fish
+      starship:
+        arch: starship
+        debian: starship
+        termux: starship
+      atuin:
+        arch: atuin
+        debian: atuin
+        termux: atuin
+      zoxide:
+        arch: zoxide
+        debian: zoxide
+        termux: zoxide
+      fzf:
+        arch: fzf
+        debian: fzf
+        termux: fzf
+      lsd:
+        arch: lsd
+        debian: lsd
+        termux: lsd
+      bat:
+        arch: bat
+        debian: bat
+        termux: bat
+      ripgrep:
+        arch: ripgrep
+        debian: ripgrep
+        termux: ripgrep
+      fd:
+        arch: fd
+        debian: fd-find
+        termux: fd
+      yazi:
+        arch: yazi
+        debian: ""
+        termux: yazi
+      lazygit:
+        arch: lazygit
+        debian: ""
+        termux: lazygit
+      topgrade:
+        arch: topgrade
+        debian: ""
+        termux: topgrade
+      tmux:
+        arch: tmux
+        debian: tmux
+        termux: tmux
+      git:
+        arch: git
+        debian: git
+        termux: git
+      fastfetch:
+        arch: fastfetch
+        debian: fastfetch
+        termux: fastfetch
+      tree:
+        arch: tree
+        debian: tree
+        termux: tree
+      trash_cli:
+        arch: trash-cli
+        debian: trash-cli
+        termux: python-trash-cli
+
+  # Neovim & build toolchain
+  dev:
+    description: "Neovim editor, LSP runtimes, and compiler dependencies"
+    packages:
+      neovim:
+        arch: neovim
+        debian: neovim
+        termux: neovim
+      curl:
+        arch: curl
+        debian: curl
+        termux: curl
+      build_tools:
+        arch: base-devel
+        debian: build-essential
+        termux: build-essential
+      nodejs:
+        arch: nodejs
+        debian: nodejs
+        termux: nodejs-lts
+      lua_language_server:
+        arch: lua-language-server
+        debian: ""
+        termux: lua-language-server
+
+  # Typesetting & document tooling
+  typesetting:
+    description: "Typst and LaTeX document compilers and language servers"
+    packages:
+      typst:
+        arch: typst
+        debian: ""
+        termux: typst
+      tinymist:
+        arch: tinymist
+        debian: ""
+        termux: tinymist
+      tectonic:
+        arch: tectonic
+        debian: ""
+        termux: tectonic
+      texlab:
+        arch: texlab
+        debian: texlab
+        termux: texlab
+
+  # Desktop & Wayland environment (Arch/CachyOS)
+  desktop:
+    description: "Wayland compositor, terminal emulators, audio, and nerd fonts"
+    packages:
+      niri:
+        arch: niri
+        debian: ""
+        termux: ""
+      ghostty:
+        arch: ghostty
+        debian: ""
+        termux: ""
+      alacritty:
+        arch: alacritty
+        debian: alacritty
+        termux: ""
+      rofi:
+        arch: rofi
+        debian: rofi
+        termux: ""
+      grim:
+        arch: grim
+        debian: grim
+        termux: ""
+      slurp:
+        arch: slurp
+        debian: slurp
+        termux: ""
+      wl_clipboard:
+        arch: wl-clipboard
+        debian: wl-clipboard
+        termux: ""
+      brightnessctl:
+        arch: brightnessctl
+        debian: brightnessctl
+        termux: ""
+      wireplumber:
+        arch: wireplumber
+        debian: wireplumber
+        termux: ""
+      font_nerd_meslo:
+        arch: ttf-meslo-nerd
+        debian: fonts-firacode
+        termux: ""
+      font_nerd_symbols:
+        arch: ttf-nerd-fonts-symbols
+        debian: ""
+        termux: ttf-nerd-fonts-symbols
+
+  # Termux / Android-specific integration
+  termux_extra:
+    description: "Termux mobile API, ncurses utilities, and prebuilt treesitter parsers"
+    packages:
+      termux_api:
+        arch: ""
+        debian: ""
+        termux: termux-api
+      ncurses_utils:
+        arch: ""
+        debian: ""
+        termux: ncurses-utils
+      tree_sitter_parsers:
+        arch: ""
+        debian: ""
+        termux: tree-sitter-parsers
+
+profiles:
+  desktop:
+    modules:
+      - core
+      - dev
+      - typesetting
+      - desktop
+  cli:
+    modules:
+      - core
+      - dev
+      - typesetting
+  termux:
+    modules:
+      - core
+      - dev
+      - typesetting
+      - termux_extra

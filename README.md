@@ -17,6 +17,9 @@ To install the packages required by these dotfiles on a fresh machine (supports 
     # Preview packages without installing:
     ./install.sh --packages --dry-run
 
+    # Inspect all packages and installed versions ([✓] installed, [+] missing):
+    ./install.sh --packages --dry-run --verbose
+
     # Or explicitly force a specific tier:
     ./install.sh --packages --cli
     ./install.sh --packages --desktop

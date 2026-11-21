@@ -1,2 +1,4 @@
 *.swp
 fish_variables
+__pycache__/
+*.pyc
